@@ -38,7 +38,7 @@ services:
               ipv4_address: 172.50.0.10
     ports:
       - 10086:10086/tcp
-      - 51820:51820/udp
+      - 51820-51830:51820-51830/udp
     volumes:
       - ./conf:/etc/wireguard
       - ./log:/opt/wireguarddashboard/app/src/log
