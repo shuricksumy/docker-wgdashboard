@@ -1,6 +1,6 @@
-# Docker-WGdashboard
+# Docker-WGDashboard
 
-## This is a docker builder for very perspective [**WGDashboard**](https://github.com/donaldzou/WGDashboard/tree/v4) v4
+##  This is a docker builder for perspective project [**WGDashboard**](https://github.com/donaldzou/WGDashboard/tree/v4) v4
 
 ```
 networks:
