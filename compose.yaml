@@ -12,22 +12,26 @@ services:
   wireguard-dashboard:
     image: shuricksumy/wgdasboard:latest
     # build:
-    #   context: .                  # The directory containing the Dockerfile
+    #   context: .
     #   dockerfile: Dockerfile
     restart: unless-stopped
     container_name: wire-dash
-    # sysctls:
-    #  - net.ipv4.ip_forward=1
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv4.conf.all.forwarding=1
+      - net.ipv4.conf.all.src_valid_mark=1
     environment:
-      - tz=Europe/Dublin
-      - global_dns=8.8.8.8
-      - enable=wg0,wg1,wg2
-      - public_ip=192.168.88.88
+      - TZ=Europe/Dublin
+      - GLOBAL_DNS=8.8.8.8
+      - ENABLE=wg0,wg1,wg2
+      - PUBLIC_IP=192.168.88.88
       # SCRIPTS
-      - WG0_POST_UP=iptables -t nat -I POSTROUTING 1 -s 11.0.0.1/24 -o eth0 -j MASQUERADE
-      - WG0_POST_DOWN=iptables -t nat -D POSTROUTING 1
-      - WG1_POST_UP=iptables -t nat -I POSTROUTING 1 -s 12.0.0.2/24 -o eth1 -j MASQUERADE
-      - WG1_POST_DOWN=iptables -t nat -D POSTROUTING 1
+      - WG0_POST_UP=iptables -t nat -A POSTROUTING -o wg0 -j MASQUERADE; iptables -t nat -A POSTROUTING -o eth+ -j MASQUERADE; iptables -I INPUT 1 -i wg0 -j ACCEPT; iptables -I FORWARD 1 -i eth+ -o wg0 -j ACCEPT; iptables -I FORWARD 1 -i wg0 -o eth+ -j ACCEPT
+      - WG0_POST_DOWN=iptables -t nat -D POSTROUTING -o wg0 -j MASQUERADE; iptables -t nat -D POSTROUTING -o eth+ -j MASQUERADE; iptables -D INPUT -i wg0 -j ACCEPT; iptables -D FORWARD -i eth+ -o wg0 -j ACCEPT; iptables -D FORWARD -i wg0 -o eth+ -j ACCEPT
+      - WG1_POST_UP=iptables -t nat -A POSTROUTING -o wg1 -j MASQUERADE; iptables -t nat -A POSTROUTING -o eth+ -j MASQUERADE; iptables -I INPUT 1 -i wg1 -j ACCEPT; iptables -I FORWARD 1 -i eth+ -o wg1 -j ACCEPT; iptables -I FORWARD 1 -i wg1 -o eth+ -j ACCEPT
+      - WG1_POST_DOWN=iptables -t nat -D POSTROUTING -o wg1 -j MASQUERADE; iptables -t nat -D POSTROUTING -o eth+ -j MASQUERADE; iptables -D INPUT -i wg1 -j ACCEPT; iptables -D FORWARD -i eth+ -o wg1 -j ACCEPT; iptables -D FORWARD -i wg1 -o eth+ -j ACCEPT
+      - WG2_POST_UP=iptables -t nat -A POSTROUTING -o wg2 -j MASQUERADE; iptables -t nat -A POSTROUTING -o eth+ -j MASQUERADE; iptables -I INPUT 1 -i wg2 -j ACCEPT; iptables -I FORWARD 1 -i eth+ -o wg2 -j ACCEPT; iptables -I FORWARD 1 -i wg2 -o eth+ -j ACCEPT
+      - WG2_POST_DOWN=iptables -t nat -D POSTROUTING -o wg2 -j MASQUERADE; iptables -t nat -D POSTROUTING -o eth+ -j MASQUERADE; iptables -D INPUT -i wg2 -j ACCEPT; iptables -D FORWARD -i eth+ -o wg2 -j ACCEPT; iptables -D FORWARD -i wg2 -o eth+ -j ACCEPT
     networks:
           npm_proxy:
               ipv4_address: 172.50.0.10

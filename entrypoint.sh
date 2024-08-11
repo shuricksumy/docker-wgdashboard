@@ -1,152 +1,182 @@
 #!/bin/bash
-echo "Starting the WireGuard Dashboard Docker container."
 
+# Function to clean up remnants of previous instances
 clean_up() {
-  # Cleaning out previous data such as the .pid file and starting the WireGuard Dashboard. Making sure to use the python venv.
-  echo "Looking for remains of previous instances..."
-  if [ -f "/opt/wireguarddashboard/app/src/gunicorn.pid" ]; then
-    echo "Found old .pid file, removing."
-    rm /opt/wireguarddashboard/app/src/gunicorn.pid
-  else
-    echo "No remains found, continuing."
-  fi
+    echo "Starting cleanup process..."
+    local pid_file="/opt/wireguarddashboard/app/src/gunicorn.pid"
+    
+    if [ -f "$pid_file" ]; then
+        echo "Found old .pid file. Removing it."
+        rm "$pid_file"
+    else
+        echo "No .pid file found. Continuing."
+    fi
 }
 
+# Function to start the WireGuard core services
 start_core() {
-  # This first step is to ensure the wg0.conf file exists, and if not, then its copied over from the ephemeral container storage.
-  if [ ! -f "/etc/wireguard/wg0.conf" ]; then
-    cp "/wg0.conf" "/etc/wireguard/wg0.conf"
-    echo "WireGuard interface file copied over."
-  else
-    echo "WireGuard interface file looks to already be existing."
-  fi
-  
-  echo "Activating Python venv and executing the WireGuard Dashboard service."
+    local wg_conf_file="/etc/wireguard/wg0.conf"
+    
+    if [ ! -f "$wg_conf_file" ]; then
+        cp "/wg0.conf" "$wg_conf_file"
+        echo "WireGuard interface file copied."
+    else
+        echo "WireGuard interface file already exists."
+    fi
 
-  . "${WGDASH}"/venv/bin/activate
-  cd "${WGDASH}"/app/src || return # If changing the directory fails (permission or presence error), then bash will exist this function, causing the WireGuard Dashboard to not be succesfully launched.
-  bash wgd.sh start
+    echo "Activating Python virtual environment and starting WireGuard Dashboard service."
+    . "${WGDASH}/app/src/venv/bin/activate"
+    cd "${WGDASH}/app/src" || { echo "Failed to change directory. Exiting."; return; }
+    bash wgd.sh start
 
-  # Check if the enable variable is not empty
-  if [ -n "$enable" ]; then
-    # Convert the comma-separated list into an array
-    IFS=',' read -r -a interfaces <<< "$enable"
-
-    # Loop through each interface in the array
-    for interface in "${interfaces[@]}"; do
-      if [ ! -z "$interface" ]; then
-        echo "Bringing up interface: $interface"
-        wg-quick up "$interface"
-      else
-        echo "Interface $interface is not specified, skipping."
-      fi
-    done
-  else
-    echo "No interfaces specified in the 'enable' variable."
-  fi
+    if [ -n "$ENABLE" ]; then
+        IFS=',' read -r -a interfaces <<< "$ENABLE"
+        for interface in "${interfaces[@]}"; do
+            if [ -n "$interface" ]; then
+                echo "Bringing up interface: $interface"
+                wg-quick up "$interface"
+            else
+                echo "Interface $interface is not specified, skipping."
+            fi
+        done
+    else
+        echo "No interfaces specified in the 'ENABLE' variable."
+    fi
 }
 
-# Function to update a configuration file with given post-up and post-down commands
+# Function to update a configuration file with given post-up or post-down commands
 update_conf_file() {
     local interface=$1
     local post_up_cmd=$2
     local post_down_cmd=$3
     local conf_file="$WG_CONF_DIR/${interface}.conf"
+    local temp_file="${conf_file}.tmp"
 
     if [ -f "$conf_file" ]; then
         echo "Updating $conf_file with PostUp and PostDown commands."
 
+        # Create a temporary file for edits
+        cp "$conf_file" "$temp_file"
+
         # Replace PostUp command if it exists
         if [ -n "$post_up_cmd" ]; then
-            if grep -q "^PostUp" "$conf_file"; then
-                sed -i "s|^PostUp.*|PostUp = $post_up_cmd|" "$conf_file"
+            if grep -q "^PostUp" "$temp_file"; then
+                sed "s|^PostUp.*|PostUp = $post_up_cmd|" "$temp_file" > "${temp_file}.updated"
+                mv "${temp_file}.updated" "$temp_file"
+            else
+                echo "PostUp command not found in $conf_file."
             fi
         fi
 
         # Replace PostDown command if it exists
         if [ -n "$post_down_cmd" ]; then
-            if grep -q "^PostDown" "$conf_file"; then
-                sed -i "s|^PostDown.*|PostDown = $post_down_cmd|" "$conf_file"
+            if grep -q "^PostDown" "$temp_file"; then
+                sed "s|^PostDown.*|PostDown = $post_down_cmd|" "$temp_file" > "${temp_file}.updated"
+                mv "${temp_file}.updated" "$temp_file"
+            else
+                echo "PostDown command not found in $conf_file."
             fi
         fi
+
+        # Replace the original file with the updated temporary file
+        cp "$temp_file" "$conf_file"
+        rm "$temp_file"
+
     else
         echo "$conf_file not found. Skipping."
     fi
 }
 
-
+# Function to set environment variables and update configuration
 set_envvars() {
-  echo "Setting relevant variables for operation."
+    echo "Setting environment variables."
 
-  # If the timezone is different, for example in North-America or Asia.
-  if [ "${tz}" != "$(cat /etc/timezone)" ]; then
-    echo "Changing timezone."
-    
-    ln -sf /usr/share/zoneinfo/"${tz}" /etc/localtime
-    echo "${tz}" > /etc/timezone
-  fi
+    local config_file="/opt/wireguarddashboard/app/src/wg-dashboard.ini"
+    local temp_file="${config_file}.tmp"
 
-  # Changing the DNS used for clients and the dashboard itself.
-  if [ "${global_dns}" != "$(grep "peer_global_dns = " /opt/wireguarddashboard/app/src/wg-dashboard.ini | awk '{print $NF}')" ]; then 
-    echo "Changing default dns."
+    # Create a temporary file for edits
+    cp "$config_file" "$temp_file"
 
-    #sed -i "s/^DNS = .*/DNS = ${global_dns}/" /etc/wireguard/wg0.conf # Uncomment if you want to have DNS on server-level.
-    sed -i "s/^peer_global_dns = .*/peer_global_dns = ${global_dns}/" /opt/wireguarddashboard/app/src/wg-dashboard.ini
-  fi
+    # Update timezone
+    if [ "${TZ}" != "$(cat /etc/timezone)" ]; then
+        echo "Updating timezone to ${TZ}."
+        ln -sf /usr/share/zoneinfo/"${TZ}" /etc/localtime
+        echo "${TZ}" > /etc/timezone
+    fi
 
-  # Setting the public IP of the WireGuard Dashboard container host. If not defined, it will trying fetching it using a curl to ifconfig.me.
-  if [ "${public_ip}" = "0.0.0.0" ]; then
-    default_ip=$(curl -s ifconfig.me)
-    echo "Trying to fetch the Public-IP using ifconfig.me: ${default_ip}"
+    # Update DNS
+    local current_dns=$(grep "peer_global_dns =" "$temp_file" | awk '{print $NF}')
+    if [ "${GLOBAL_DNS}" != "$current_dns" ]; then
+        echo "Updating DNS to ${GLOBAL_DNS}."
+        sed "s/^peer_global_dns = .*/peer_global_dns = ${GLOBAL_DNS}/" "$temp_file" > "${temp_file}.updated"
+        mv "${temp_file}.updated" "$temp_file"
+    fi
 
-    sed -i "s/^remote_endpoint = .*/remote_endpoint = ${default_ip}/" /opt/wireguarddashboard/app/src/wg-dashboard.ini
-  elif [ "${public_ip}" != "$(grep "remote_endpoint = " /opt/wireguarddashboard/app/src/wg-dashboard.ini | awk '{print $NF}')" ]; then
-    echo "Setting the Public-IP using given variable: ${public_ip}"
+    # Update public IP
+    local current_ip=$(grep "remote_endpoint =" "$temp_file" | cut -d'=' -f2 | tr -d ' ')
+    if [ "$PUBLIC_IP" = "0.0.0.0" ]; then
+        PUBLIC_IP=$(curl -s ifconfig.me)
+        echo "Fetched Public-IP using ifconfig.me: $PUBLIC_IP"
+    fi
+    if [ "$PUBLIC_IP" != "$current_ip" ]; then
+        sed "s/^remote_endpoint = .*/remote_endpoint = $PUBLIC_IP/" "$temp_file" > "${temp_file}.updated"
+        mv "${temp_file}.updated" "$temp_file"
+        echo "Public-IP set to: $PUBLIC_IP"
+        # Verify the update
+        if grep -q "^remote_endpoint = $PUBLIC_IP" "$temp_file"; then
+            echo "remote_endpoint updated successfully to $PUBLIC_IP"
+        else
+            echo "Failed to update remote_endpoint"
+        fi
+    else
+        echo "Public-IP is already set correctly: $current_ip"
+    fi
 
-    sed -i "s/^remote_endpoint = .*/remote_endpoint = ${public_ip}/" /opt/wireguarddashboard/app/src/wg-dashboard.ini
-  fi
+    # Replace the original file with the updated temporary file
+    cp "$temp_file" "$config_file"
+    rm "$temp_file"
 
+    # Update PostUp and PostDown commands separately
+    WG_CONF_DIR="/etc/wireguard"
+    for var in $(env | grep -E '^WG[0-9]+_POST_UP=|^WG[0-9]+_POST_DOWN=' | awk -F= '{print $1}'); do
+        case $var in
+            WG*POST_UP)
+                interface=$(echo "$var" | sed -E 's/WG([0-9]+)_POST_UP/\1/')
+                post_up_cmd=${!var}
+                update_conf_file "wg${interface}" "$post_up_cmd" "" # Only update PostUp
+                ;;
+            WG*POST_DOWN)
+                interface=$(echo "$var" | sed -E 's/WG([0-9]+)_POST_DOWN/\1/')
+                post_down_cmd=${!var}
+                update_conf_file "wg${interface}" "" "$post_down_cmd" # Only update PostDown
+                ;;
+        esac
+    done
 
-  # Path to WireGuard configuration files
-  WG_CONF_DIR="/etc/wireguard"
-  # Iterate over environment variables that match the pattern for PostUp and PostDown
-  for var in $(env | grep -E '^WG[0-9]+_POST_UP=|^WG[0-9]+_POST_DOWN=' | awk -F= '{print $1}'); do
-      case $var in
-          WG*POST_UP)
-              # Extract the interface name from the environment variable name
-              interface=$(echo "$var" | sed -E 's/WG([0-9]+)_POST_UP/\1/')
-              post_up_cmd=${!var}
-              # Find corresponding PostDown variable
-              post_down_var="WG${interface}_POST_DOWN"
-              post_down_cmd=${!post_down_var}
-              update_conf_file "wg${interface}" "$post_up_cmd" "$post_down_cmd"
-              ;;
-          *)
-              # Ignore variables that do not match the pattern
-              ;;
-      esac
-  done
-
-  echo "Configuration update complete."
+    echo "Configuration update complete."
 }
 
+# Function to ensure the container continues running
 ensure_blocking() {
-  sleep 1s
-  echo "Ensuring container continuation."
+    sleep 1s
+    echo "Ensuring container continuation."
 
-  # This function checks if the latest error log is created and tails it for docker logs uses.
-  if find "/opt/wireguarddashboard/app/src/log" -mindepth 1 -maxdepth 1 -type f | read -r; then
-    latestErrLog=$(find /opt/wireguarddashboard/app/src/log -name "error_*.log" | head -n 1)
-    latestAccLog=$(find /opt/wireguarddashboard/app/src/log -name "access_*.log" | head -n 1)
-    tail -f "${latestErrLog}" "${latestAccLog}"
-  fi
+    local log_dir="/opt/wireguarddashboard/app/src/log"
+    if find "$log_dir" -mindepth 1 -maxdepth 1 -type f | read -r; then
+        local latestErrLog=$(find "$log_dir" -name "error_*.log" | head -n 1)
+        local latestAccLog=$(find "$log_dir" -name "access_*.log" | head -n 1)
+        tail -f "$latestErrLog" "$latestAccLog"
+    fi
 
-  # Blocking command in case of erroring. So the container does not quit.
-  sleep infinity
+    sleep infinity
 }
 
-# Execute functions for the WireGuard Dashboard services, then set the environment variables
+# Execute the main functions
+echo "========== CLEAN UP: ============"
 clean_up
-start_core
+echo "========== SET ENV: ============="
 set_envvars
+echo "========== START CORE: =========="
+start_core
+echo "========== CHECK BLOCKING: ======"
 ensure_blocking
