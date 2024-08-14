@@ -54,5 +54,13 @@ services:
       - ./ini/wg-dashboard.ini:/opt/wireguarddashboard/app/src/wg-dashboard.ini
     cap_add:
       - NET_ADMIN
+    # labels:
+    #      - "traefik.enable=true"
+    #      - "traefik.docker.network=npm_proxy"
+    #      - "traefik.http.routers.wireguard-dashboard.rule=Host(`your_hosr`) && PathPrefix(`/wgdashboard`, `/static`)"
+    #      - "traefik.http.routers.wireguard-dashboard.entrypoints=websecure"
+    #      - "traefik.http.routers.wireguard-dashboard.tls=true"
+    #      - "traefik.http.services.wireguard-dashboard.loadbalancer.server.port=10086"
+
 ```
 
