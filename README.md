@@ -28,6 +28,7 @@ services:
       - net.ipv4.conf.all.forwarding=1
       - net.ipv4.conf.all.src_valid_mark=1
     environment:
+      - APP_PREFIX=/wgdashboard
       - TZ=Europe/Dublin
       - GLOBAL_DNS=8.8.8.8
       - ENABLE=wg0,wg1,wg2

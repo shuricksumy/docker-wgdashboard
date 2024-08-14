@@ -132,6 +132,13 @@ set_envvars() {
         echo "Public-IP is already set correctly: $current_ip"
     fi
 
+    # Update app_prefix
+    local current_prefix=$(grep "app_prefix =" "$temp_file" | awk '{print $NF}')
+    if [ "$APP_PREFIX" != "$current_prefix" ]; then
+        echo "Updating app_prefix to $APP_PREFIX."
+        sed -i "s|^app_prefix =.*|app_prefix = $APP_PREFIX|" "$temp_file"
+    fi
+
     # Replace the original file with the updated temporary file
     cp "$temp_file" "$config_file"
     rm "$temp_file"
