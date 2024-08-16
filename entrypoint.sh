@@ -1,24 +1,35 @@
 #!/bin/bash
 
-# Function to clean up remnants of previous instances
+# ========== CONSTANT VARIABLES ==========
+
+# Define WGDASH if it's not already defined
+: "${WGDASH:=/opt/wireguarddashboard}"
+
+LOG_DIR="${WGDASH}/app/src/log"
+PID_FILE="${WGDASH}/app/src/gunicorn.pid"
+WG_CONF_FILE="/etc/wireguard/wg0.conf"
+DEFAULT_WG_CONF="/wg0.conf"
+CONFIG_FILE="${WGDASH}/app/src/wg-dashboard.ini"
+WG_CONF_DIR="/etc/wireguard"
+INITIAL_SLEEP=5
+RETRY_SLEEP=5
+
+# ========== CLEAN UP ==========
 clean_up() {
     echo "Starting cleanup process..."
-    local pid_file="/opt/wireguarddashboard/app/src/gunicorn.pid"
-    
-    if [ -f "$pid_file" ]; then
+
+    if [ -f "$PID_FILE" ]; then
         echo "Found old .pid file. Removing it."
-        rm "$pid_file"
+        rm "$PID_FILE"
     else
         echo "No .pid file found. Continuing."
     fi
 }
 
-# Function to start the WireGuard core services
+# ========== START CORE SERVICES ==========
 start_core() {
-    local wg_conf_file="/etc/wireguard/wg0.conf"
-    
-    if [ ! -f "$wg_conf_file" ]; then
-        cp "/wg0.conf" "$wg_conf_file"
+    if [ ! -f "$WG_CONF_FILE" ]; then
+        cp "$DEFAULT_WG_CONF" "$WG_CONF_FILE"
         echo "WireGuard interface file copied."
     else
         echo "WireGuard interface file already exists."
@@ -32,19 +43,15 @@ start_core() {
     if [ -n "$ENABLE" ]; then
         IFS=',' read -r -a interfaces <<< "$ENABLE"
         for interface in "${interfaces[@]}"; do
-            if [ -n "$interface" ]; then
-                echo "Bringing up interface: $interface"
-                wg-quick up "$interface"
-            else
-                echo "Interface $interface is not specified, skipping."
-            fi
+            echo "Bringing up interface: $interface"
+            wg-quick up "$interface"
         done
     else
         echo "No interfaces specified in the 'ENABLE' variable."
     fi
 }
 
-# Function to update a configuration file with given post-up or post-down commands
+# ========== UPDATE CONFIGURATION FILE ==========
 update_conf_file() {
     local interface=$1
     local post_up_cmd=$2
@@ -54,48 +61,32 @@ update_conf_file() {
 
     if [ -f "$conf_file" ]; then
         echo "Updating $conf_file with PostUp and PostDown commands."
-
-        # Create a temporary file for edits
         cp "$conf_file" "$temp_file"
 
-        # Replace PostUp command if it exists
-        if [ -n "$post_up_cmd" ]; then
-            if grep -q "^PostUp" "$temp_file"; then
-                sed "s|^PostUp.*|PostUp = $post_up_cmd|" "$temp_file" > "${temp_file}.updated"
-                mv "${temp_file}.updated" "$temp_file"
-            else
-                echo "PostUp command not found in $conf_file."
-            fi
+        # Update PostUp command
+        if [ -n "$post_up_cmd" ] && grep -q "^PostUp" "$temp_file"; then
+            sed "s|^PostUp.*|PostUp = $post_up_cmd|" "$temp_file" > "${temp_file}.updated"
+            mv "${temp_file}.updated" "$temp_file"
         fi
 
-        # Replace PostDown command if it exists
-        if [ -n "$post_down_cmd" ]; then
-            if grep -q "^PostDown" "$temp_file"; then
-                sed "s|^PostDown.*|PostDown = $post_down_cmd|" "$temp_file" > "${temp_file}.updated"
-                mv "${temp_file}.updated" "$temp_file"
-            else
-                echo "PostDown command not found in $conf_file."
-            fi
+        # Update PostDown command
+        if [ -n "$post_down_cmd" ] && grep -q "^PostDown" "$temp_file"; then
+            sed "s|^PostDown.*|PostDown = $post_down_cmd|" "$temp_file" > "${temp_file}.updated"
+            mv "${temp_file}.updated" "$temp_file"
         fi
 
-        # Replace the original file with the updated temporary file
         cp "$temp_file" "$conf_file"
         rm "$temp_file"
-
     else
         echo "$conf_file not found. Skipping."
     fi
 }
 
-# Function to set environment variables and update configuration
+# ========== SET ENVIRONMENT VARIABLES ==========
 set_envvars() {
     echo "Setting environment variables."
-
-    local config_file="/opt/wireguarddashboard/app/src/wg-dashboard.ini"
-    local temp_file="${config_file}.tmp"
-
-    # Create a temporary file for edits
-    cp "$config_file" "$temp_file"
+    local temp_file="${CONFIG_FILE}.tmp"
+    cp "$CONFIG_FILE" "$temp_file"
 
     # Update timezone
     if [ "${TZ}" != "$(cat /etc/timezone)" ]; then
@@ -121,69 +112,68 @@ set_envvars() {
     if [ "$PUBLIC_IP" != "$current_ip" ]; then
         sed "s/^remote_endpoint = .*/remote_endpoint = $PUBLIC_IP/" "$temp_file" > "${temp_file}.updated"
         mv "${temp_file}.updated" "$temp_file"
-        echo "Public-IP set to: $PUBLIC_IP"
-        # Verify the update
-        if grep -q "^remote_endpoint = $PUBLIC_IP" "$temp_file"; then
-            echo "remote_endpoint updated successfully to $PUBLIC_IP"
-        else
-            echo "Failed to update remote_endpoint"
-        fi
-    else
-        echo "Public-IP is already set correctly: $current_ip"
     fi
 
     # Update app_prefix
     local current_prefix=$(grep "app_prefix =" "$temp_file" | awk '{print $NF}')
     if [ "$APP_PREFIX" != "$current_prefix" ]; then
-        echo "Updating app_prefix to $APP_PREFIX."
         sed -i "s|^app_prefix =.*|app_prefix = $APP_PREFIX|" "$temp_file"
     fi
 
-    # Replace the original file with the updated temporary file
-    cp "$temp_file" "$config_file"
+    cp "$temp_file" "$CONFIG_FILE"
     rm "$temp_file"
 
-    # Update PostUp and PostDown commands separately
-    WG_CONF_DIR="/etc/wireguard"
+    # Update PostUp and PostDown commands for interfaces
     for var in $(env | grep -E '^WG[0-9]+_POST_UP=|^WG[0-9]+_POST_DOWN=' | awk -F= '{print $1}'); do
-        case $var in
-            WG*POST_UP)
-                interface=$(echo "$var" | sed -E 's/WG([0-9]+)_POST_UP/\1/')
-                post_up_cmd=${!var}
-                update_conf_file "wg${interface}" "$post_up_cmd" "" # Only update PostUp
-                ;;
-            WG*POST_DOWN)
-                interface=$(echo "$var" | sed -E 's/WG([0-9]+)_POST_DOWN/\1/')
-                post_down_cmd=${!var}
-                update_conf_file "wg${interface}" "" "$post_down_cmd" # Only update PostDown
-                ;;
-        esac
+        interface=$(echo "$var" | sed -E 's/WG([0-9]+)_.*/\1/')
+        if [[ $var == *POST_UP* ]]; then
+            update_conf_file "wg${interface}" "${!var}" ""
+        elif [[ $var == *POST_DOWN* ]]; then
+            update_conf_file "wg${interface}" "" "${!var}"
+        fi
     done
 
     echo "Configuration update complete."
 }
 
-# Function to ensure the container continues running
-ensure_blocking() {
-    sleep 1s
-    echo "Ensuring container continuation."
+# ========== DISPLAY LOGS ==========
+display_logs() {
+    echo "Waiting for $INITIAL_SLEEP seconds to ensure logs are created..."
+    sleep "$INITIAL_SLEEP"
 
-    local log_dir="/opt/wireguarddashboard/app/src/log"
-    if find "$log_dir" -mindepth 1 -maxdepth 1 -type f | read -r; then
-        local latestErrLog=$(find "$log_dir" -name "error_*.log" | head -n 1)
-        local latestAccLog=$(find "$log_dir" -name "access_*.log" | head -n 1)
-        tail -f "$latestErrLog" "$latestAccLog"
-    fi
+    while true; do
+        echo "Checking for latest logs..."
 
-    sleep infinity
+        # Check if log directory is not empty
+        if find "$LOG_DIR" -mindepth 1 -maxdepth 1 -type f | read -r; then
+            latestErrLog=$(find "$LOG_DIR" -name "error_*.log" -type f -printf "%T@ %p\n" | sort -nr | cut -d' ' -f2- | head -n 1)
+            latestAccLog=$(find "$LOG_DIR" -name "access_*.log" -type f -printf "%T@ %p\n" | sort -nr | cut -d' ' -f2- | head -n 1)
+
+            # Tail the latest error and access logs
+            if [[ -n "$latestErrLog" && -n "$latestAccLog" ]]; then
+                echo "Tailing logs: $latestErrLog, $latestAccLog"
+                tail -f "$latestErrLog" "$latestAccLog"
+            else
+                echo "No logs found to tail."
+            fi
+        else
+            echo "Log directory is empty."
+        fi
+
+        echo "Retrying in $RETRY_SLEEP seconds..."
+        sleep "$RETRY_SLEEP"
+    done
 }
 
-# Execute the main functions
+# ========== MAIN EXECUTION ==========
 echo "========== CLEAN UP: ============"
 clean_up
+
 echo "========== SET ENV: ============="
 set_envvars
+
 echo "========== START CORE: =========="
 start_core
-echo "========== CHECK BLOCKING: ======"
-ensure_blocking
+
+echo "========== SHOW LOGS: ==========="
+display_logs
