@@ -2,10 +2,10 @@
 
 ##  This is a docker builder for perspective project [**WGDashboard**](https://github.com/donaldzou/WGDashboard/tree/v4) v4
 
-### IPTABLES rules are testing now
-- WG0 rules - trafik is allowded beetween peers and inside/outside the docker
-- WG1 rules - trafik is blocked beetween peers but allowed inside/outside the docker
-- WG2 rules - trafik is allowded beetween peers but blocked outside/inside the docker
+### Example of IPTABLES rules
+- WG0 rules [ ./scripts/wg0_*.sh ] - trafik is allowded beetween peers and inside/outside the docker
+- WG1 rules [ ./scripts/wg1_*.sh ] - trafik is blocked beetween peers but allowed inside/outside the docker
+- WG2 rules [ ./scripts/wg2_*.sh ] - trafik is allowded beetween peers but blocked outside/inside the docker
 
 Note: After the very first run need to restart docker to replace all env vars !
 
