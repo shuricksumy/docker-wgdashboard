@@ -1,6 +1,6 @@
 # Docker-WGDashboard
 
-##  This is a docker builder for perspective project [**WGDashboard**](https://github.com/donaldzou/WGDashboard/tree/v4) v4
+##  This is a docker builder for the project [**WGDashboard**](https://github.com/donaldzou/WGDashboard/tree/v4) v4
 
 ### Example of IPTABLES rules
 - WG0 rules [ ./scripts/wg0_*.sh ] - trafik is allowded beetween peers and inside/outside the docker
