@@ -2,6 +2,11 @@
 
 ##  This is a docker builder for perspective project [**WGDashboard**](https://github.com/donaldzou/WGDashboard/tree/v4) v4
 
+### IPTABLES rules are testing now
+- WG0 rules - trafik is allowded beetween peers and inside/outside the docker
+- WG1 rules - trafik is blocked beetween peers but allowed inside/outside the docker
+- WG2 rules - trafik is allowded beetween peers but blocked outside/inside the docker
+
 Note: After the very first run need to restart docker to replace all env vars !
 
 ```
@@ -34,12 +39,12 @@ services:
       - ENABLE=wg0,wg1,wg2
       - PUBLIC_IP=192.168.88.88
       # SCRIPTS
-      - WG0_POST_UP=iptables -t nat -A POSTROUTING -o wg0 -j MASQUERADE; iptables -t nat -A POSTROUTING -o eth+ -j MASQUERADE; iptables -I INPUT 1 -i wg0 -j ACCEPT; iptables -I FORWARD 1 -i eth+ -o wg0 -j ACCEPT; iptables -I FORWARD 1 -i wg0 -o eth+ -j ACCEPT
-      - WG0_POST_DOWN=iptables -t nat -D POSTROUTING -o wg0 -j MASQUERADE; iptables -t nat -D POSTROUTING -o eth+ -j MASQUERADE; iptables -D INPUT -i wg0 -j ACCEPT; iptables -D FORWARD -i eth+ -o wg0 -j ACCEPT; iptables -D FORWARD -i wg0 -o eth+ -j ACCEPT
-      - WG1_POST_UP=iptables -t nat -A POSTROUTING -o wg1 -j MASQUERADE; iptables -t nat -A POSTROUTING -o eth+ -j MASQUERADE; iptables -I INPUT 1 -i wg1 -j ACCEPT; iptables -I FORWARD 1 -i eth+ -o wg1 -j ACCEPT; iptables -I FORWARD 1 -i wg1 -o eth+ -j ACCEPT
-      - WG1_POST_DOWN=iptables -t nat -D POSTROUTING -o wg1 -j MASQUERADE; iptables -t nat -D POSTROUTING -o eth+ -j MASQUERADE; iptables -D INPUT -i wg1 -j ACCEPT; iptables -D FORWARD -i eth+ -o wg1 -j ACCEPT; iptables -D FORWARD -i wg1 -o eth+ -j ACCEPT
-      - WG2_POST_UP=iptables -t nat -A POSTROUTING -o wg2 -j MASQUERADE; iptables -t nat -A POSTROUTING -o eth+ -j MASQUERADE; iptables -I INPUT 1 -i wg2 -j ACCEPT; iptables -I FORWARD 1 -i eth+ -o wg2 -j ACCEPT; iptables -I FORWARD 1 -i wg2 -o eth+ -j ACCEPT
-      - WG2_POST_DOWN=iptables -t nat -D POSTROUTING -o wg2 -j MASQUERADE; iptables -t nat -D POSTROUTING -o eth+ -j MASQUERADE; iptables -D INPUT -i wg2 -j ACCEPT; iptables -D FORWARD -i eth+ -o wg2 -j ACCEPT; iptables -D FORWARD -i wg2 -o eth+ -j ACCEPT
+      - WG0_POST_UP=/bin/bash /scripts/wg0_post_up.sh
+      - WG0_POST_DOWN=/bin/bash /scripts/wg0_post_down.sh
+      - WG1_POST_UP=/bin/bash /scripts/wg1_post_up.sh
+      - WG1_POST_DOWN=/bin/bash /scripts/wg1_post_down.sh
+      - WG2_POST_UP=/bin/bash /scripts/wg2_post_up.sh
+      - WG2_POST_DOWN=/bin/bash /scripts/wg2_post_down.sh
     networks:
           npm_proxy:
               ipv4_address: 172.50.0.10
@@ -47,6 +52,7 @@ services:
       - 10086:10086/tcp
       - 51820-51830:51820-51830/udp
     volumes:
+      - ./scripts:/scripts
       - ./conf:/etc/wireguard
       - ./log:/opt/wireguarddashboard/app/src/log
       - ./db:/opt/wireguarddashboard/app/src/db
@@ -61,6 +67,5 @@ services:
     #      - "traefik.http.routers.wireguard-dashboard.entrypoints=websecure"
     #      - "traefik.http.routers.wireguard-dashboard.tls=true"
     #      - "traefik.http.services.wireguard-dashboard.loadbalancer.server.port=10086"
-
 ```
 
