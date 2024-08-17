@@ -2,13 +2,21 @@
 
 ##  This is a docker builder for the project [**WGDashboard**](https://github.com/donaldzou/WGDashboard)
 
-### Example of IPTABLES rules
-- WG0 rules [ ./scripts/wg0_*.sh ] - trafik is allowded beetween peers and outside the docker
-- WG1 rules [ ./scripts/wg1_*.sh ] - trafik is blocked beetween peers but allowed outside the docker
-- WG2 rules [ ./scripts/wg2_*.sh ] - trafik is allowded beetween peers but blocked outside the docker
+> [!NOTE]
+> - After the very first run need to restart docker to replace all env vars !
 
-Note: After the very first run need to restart docker to replace all env vars !
+> [!TIP]
+> - This example will be reachable on http(s)://your_host:10086/wgdashboard
+> - Or using traeifk as proxy can be reachable https://your_public_host/wgdashboard
 
+> [!TIP]
+> #### Example of IPTABLES rules
+> - WG0 rules [ ./scripts/wg0_*.sh ] - trafik is allowded beetween peers and outside the docker
+> - WG1 rules [ ./scripts/wg1_*.sh ] - trafik is blocked beetween peers but allowed outside the docker
+> - WG2 rules [ ./scripts/wg2_*.sh ] - trafik is allowded beetween peers but blocked outside the docker
+
+
+`docker-compose.yaml`
 ```
 networks:
     default:
