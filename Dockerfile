@@ -1,25 +1,25 @@
-# Stage 1: Frontend Build
-FROM node:18 AS frontend-build
+# # Stage 1: Frontend Build
+# FROM node:18 AS frontend-build
 
-# Set the working directory inside the container
-WORKDIR /app
+# # Set the working directory inside the container
+# WORKDIR /app
 
-# Copy the repository from the local filesystem into the container
-COPY ./WGDashboard /app
+# # Copy the repository from the local filesystem into the container
+# COPY ./WGDashboard /app
 
-# Copy proxy.js into the /app directory
-COPY proxy.js /app/src/static/app/
+# # Copy proxy.js into the /app directory
+# COPY proxy.js /app/src/static/app/
 
-WORKDIR /app/src/static/app
+# WORKDIR /app/src/static/app
 
-# Install Vite globally as a dev dependency
-RUN npm install -g vite@latest
+# # Install Vite globally as a dev dependency
+# RUN npm install -g vite@latest
 
-# Install project dependencies
-RUN npm install
+# # Install project dependencies
+# RUN npm install
 
-# Build the app
-RUN npm run build
+# # Build the app
+# RUN npm run build
 
 # Stage 2: Final Build
 FROM debian:stable-slim AS final-build
@@ -61,11 +61,11 @@ RUN . ${WGDASH}/app/src/venv/bin/activate \
   && chmod +x ${WGDASH}/app/src/wgd.sh \
   && ${WGDASH}/app/src/wgd.sh install
 
-# Clean up the dist directory
-RUN rm -rf ${WGDASH}/app/src/static/app/dist/*
+# # Clean up the dist directory
+# RUN rm -rf ${WGDASH}/app/src/static/app/dist/*
 
-# Copy the built files from the frontend-build stage to the desired directory
-COPY --from=frontend-build /app/src/static/app/dist ${WGDASH}/app/src/static/app/dist/
+# # Copy the built files from the frontend-build stage to the desired directory
+# COPY --from=frontend-build /app/src/static/app/dist ${WGDASH}/app/src/static/app/dist/
 
 # Set up volume for WireGuard configuration
 VOLUME /etc/wireguard
