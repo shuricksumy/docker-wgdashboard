@@ -60,12 +60,11 @@ services:
       - 10086:10086/tcp
       - 51820-51830:51820-51830/udp
     volumes:
+    volumes:
       - ./scripts:/scripts
       - ./conf:/etc/wireguard
+      - ./app_conf:/opt/wireguarddashboard/app/src/app_conf
       - ./log:/opt/wireguarddashboard/app/src/log
-      - ./db:/opt/wireguarddashboard/app/src/db
-      # touch ./ini/wg-dashboard.ini
-      - ./ini/wg-dashboard.ini:/opt/wireguarddashboard/app/src/wg-dashboard.ini
     cap_add:
       - NET_ADMIN
     # labels:

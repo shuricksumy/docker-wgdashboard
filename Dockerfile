@@ -51,9 +51,15 @@ RUN echo "net.ipv4.ip_forward=1" | sudo tee -a /etc/sysctl.conf
 # Copy the WGDashboard repository from the local filesystem into the container
 COPY ./WGDashboard ${WGDASH}/app
 
+# Add var CONFIGURATION_PATH to sudo user
+ENV CONFIGURATION_PATH=${WGDASH}/app/src/app_conf
+# Ensure sudo retains the environment variable
+RUN echo 'Defaults env_keep += "CONFIGURATION_PATH"' >> /etc/sudoers
+
 # Set up Python virtual environment
 RUN python3 -m venv ${WGDASH}/app/src/venv \
-  && mkdir -p ${WGDASH}/app/src/log
+  && mkdir -p ${WGDASH}/app/src/log \
+  && mkdir -p ${WGDASH}/app/src/app_conf
 
 # Install Python dependencies
 RUN . ${WGDASH}/app/src/venv/bin/activate \

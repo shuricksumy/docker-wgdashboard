@@ -9,7 +9,8 @@ LOG_DIR="${WGDASH}/app/src/log"
 PID_FILE="${WGDASH}/app/src/gunicorn.pid"
 WG_CONF_FILE="/etc/wireguard/wg0.conf"
 DEFAULT_WG_CONF="/wg0.conf"
-CONFIG_FILE="${WGDASH}/app/src/wg-dashboard.ini"
+CONFIG_FILE="${CONFIGURATION_PATH}/wg-dashboard.ini"
+PY_CACHE="${WGDASH}/app/src/__pycache__"
 WG_CONF_DIR="/etc/wireguard"
 INITIAL_SLEEP=5
 RETRY_SLEEP=5
@@ -24,6 +25,13 @@ clean_up() {
     else
         echo "No .pid file found. Continuing."
     fi
+
+    if [ -d "$PY_CACHE" ]; then
+        echo "Directory $PY_CACHE exists. Deleting it..."
+        rm -rf "$PY_CACHE"
+        echo "Python cache directory deleted."
+    fi
+
 }
 
 # ========== START CORE SERVICES ==========
