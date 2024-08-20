@@ -7,9 +7,6 @@
 # # Copy the repository from the local filesystem into the container
 # COPY ./WGDashboard /app
 
-# # Copy proxy.js into the /app directory
-# COPY proxy.js /app/src/static/app/
-
 # WORKDIR /app/src/static/app
 
 # # Install Vite globally as a dev dependency
@@ -66,14 +63,13 @@ RUN . ${WGDASH}/app/src/venv/bin/activate \
   && chmod +x ${WGDASH}/app/src/wgd.sh \
   && ${WGDASH}/app/src/wgd.sh install
 
-# # Clean up the dist directory
+# # After stage 1 (Frontend Build) copy builded front-end application 
 # RUN rm -rf ${WGDASH}/app/src/static/app/dist/*
-
-# # Copy the built files from the frontend-build stage to the desired directory
 # COPY --from=frontend-build /app/src/static/app/dist ${WGDASH}/app/src/static/app/dist/
 
 # Set up volume for WireGuard configuration
 VOLUME /etc/wireguard
+VOLUME ${WGDASH}/app/src/app_conf
 
 # Generate basic WireGuard interface configuration
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
