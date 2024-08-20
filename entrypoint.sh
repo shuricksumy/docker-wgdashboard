@@ -5,10 +5,12 @@
 # Define WGDASH if it's not already defined
 : "${WGDASH:=/opt/wireguarddashboard}"
 
+# Define CONFIGURATION_PATH if it's not already defined
+: "${CONFIGURATION_PATH:=$WGDASH}"
+
 LOG_DIR="${WGDASH}/app/src/log"
 PID_FILE="${WGDASH}/app/src/gunicorn.pid"
 WG_CONF_FILE="/etc/wireguard/wg0.conf"
-DEFAULT_WG_CONF="/wg0.conf"
 CONFIG_FILE="${CONFIGURATION_PATH}/wg-dashboard.ini"
 PY_CACHE="${WGDASH}/app/src/__pycache__"
 WG_CONF_DIR="/etc/wireguard"
@@ -31,18 +33,10 @@ clean_up() {
         rm -rf "$PY_CACHE"
         echo "Python cache directory deleted."
     fi
-
 }
 
 # ========== START CORE SERVICES ==========
 start_core() {
-    if [ ! -f "$WG_CONF_FILE" ]; then
-        cp "$DEFAULT_WG_CONF" "$WG_CONF_FILE"
-        echo "WireGuard interface file copied."
-    else
-        echo "WireGuard interface file already exists."
-    fi
-
     echo "Activating Python virtual environment and starting WireGuard Dashboard service."
     . "${WGDASH}/app/src/venv/bin/activate"
     cd "${WGDASH}/app/src" || { echo "Failed to change directory. Exiting."; return; }
@@ -57,6 +51,14 @@ start_core() {
     else
         echo "No interfaces specified in the 'ENABLE' variable."
     fi
+}
+
+# ========== STOP CORE SERVICES ==========
+stop_core() {
+    echo "Stopping WireGuard Dashboard service."
+    . "${WGDASH}/app/src/venv/bin/activate"
+    cd "${WGDASH}/app/src" || { echo "Failed to change directory. Exiting."; return; }
+    bash wgd.sh stop
 }
 
 # ========== UPDATE CONFIGURATION FILE ==========
@@ -167,6 +169,20 @@ display_logs() {
 }
 
 # ========== MAIN EXECUTION ==========
+
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo "Config file not found, running initial setup..."
+
+    echo "========== START CORE: =========="
+    start_core
+
+    echo "Waiting for $INITIAL_SLEEP seconds before stopping core..."
+    sleep "$INITIAL_SLEEP"
+
+    echo "========== STOP CORE: ==========="
+    stop_core
+fi
+
 echo "========== CLEAN UP: ============"
 clean_up
 

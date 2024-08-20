@@ -2,9 +2,6 @@
 
 ##  This is a docker builder for the project [**WGDashboard**](https://github.com/donaldzou/WGDashboard)
 
-> [!NOTE]
-> - After the very first run need to restart docker to replace all env vars !
-
 > [!TIP]
 > - This example will be reachable on http(s)://your_host:10086/wgdashboard
 > - Or using traeifk as proxy can be reachable https://your_public_host/wgdashboard

@@ -71,19 +71,6 @@ RUN . ${WGDASH}/app/src/venv/bin/activate \
 VOLUME /etc/wireguard
 VOLUME ${WGDASH}/app/src/app_conf
 
-# Generate basic WireGuard interface configuration
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-RUN wg genkey | tee /etc/wireguard/wg0_privatekey \
-  && echo "[Interface]" > /wg0.conf \
-  && echo "SaveConfig = true" >> /wg0.conf \
-  && echo "Address = ${wg_net}/24" >> /wg0.conf \
-  && echo "PrivateKey = $(cat /etc/wireguard/wg0_privatekey)" >> /wg0.conf \
-  && echo "PostUp = iptables -t nat -I POSTROUTING 1 -s ${wg_net}/24 -o $(ip -o -4 route show to default | awk '{print $NF}') -j MASQUERADE" >> /wg0.conf \
-  && echo "PostDown = iptables -t nat -D POSTROUTING 1" >> /wg0.conf \
-  && echo "ListenPort = 51820" >> /wg0.conf \
-  && echo "DNS = ${global_dns}" >> /wg0.conf \
-  && rm /etc/wireguard/wg0_privatekey
-
 # Healthcheck to ensure the container is running correctly
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD curl -s -o /dev/null -w "%{http_code}" http://localhost:10086/signin | grep -q "401" && exit 0 || exit 1
