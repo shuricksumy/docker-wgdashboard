@@ -12,6 +12,16 @@
 > - WG1 rules [ ./scripts/wg1_*.sh ] - trafik is blocked beetween peers but allowed outside the docker
 > - WG2 rules [ ./scripts/wg2_*.sh ] - trafik is allowded beetween peers but blocked outside the docker
 
+## Env vars
+| Var name | Example of usage | Description |
+|---|----|---|
+| TZ | TZ=Europe/Dublin | time zone of server |
+| GLOBAL_DNS | GLOBAL_DNS=8.8.8.8 | IP of DNS server used in config files|
+| ENABLE | ENABLE=wg0,wg1,wg2 | The interface names that will start automatically after docker starts|
+| PUBLIC_IP | PUBLIC_IP=192.168.88.88 | The public IP address of server which clients use to connect|
+| WG0_POST_UP | WG0_POST_UP=iptables -A some rule | Linux command to run after WG0 interface is up, can be WG1_POST_UP, WG2_POST_UP, etc...|
+| WG0_POST_DOWN | WG0_POST_UP=iptables -D some rule  | Linux command to run after WG0 interface is down, can be WG1_POST_DOWN, WG2_POST_DOWN, etc...|
+
 
 `docker-compose.yaml`
 ```
