@@ -11,8 +11,9 @@ if [[ "$confirm" =~ ^[Yy]$ ]]; then
     docker rm $(docker ps -aq) 2>/dev/null
 
     echo "Pruning Docker system and volumes..."
-    docker system prune -af
-    docker volume prune -f
+    docker system prune -af 
+    sleep 5
+    docker volume prune -af
 
     echo "Operation completed."
 else

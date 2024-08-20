@@ -23,7 +23,6 @@
 
 # Stage 2: Final Build
 FROM debian:stable-slim AS final-build
-LABEL maintainer="dselen@nerthus.nl"
 
 # Environment variables
 ENV wg_net="10.0.0.1"
