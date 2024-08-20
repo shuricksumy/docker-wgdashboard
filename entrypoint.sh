@@ -93,8 +93,6 @@ update_conf_file() {
 # ========== SET ENVIRONMENT VARIABLES ==========
 set_envvars() {
     echo "Setting environment variables."
-    local temp_file="${CONFIG_FILE}.tmp"
-    cp "$CONFIG_FILE" "$temp_file"
 
     # Update timezone
     if [ "${TZ}" != "$(cat /etc/timezone)" ]; then
@@ -104,32 +102,27 @@ set_envvars() {
     fi
 
     # Update DNS
-    local current_dns=$(grep "peer_global_dns =" "$temp_file" | awk '{print $NF}')
+    local current_dns=$(grep "peer_global_dns =" "$CONFIG_FILE" | awk '{print $NF}')
     if [ "${GLOBAL_DNS}" != "$current_dns" ]; then
         echo "Updating DNS to ${GLOBAL_DNS}."
-        sed "s/^peer_global_dns = .*/peer_global_dns = ${GLOBAL_DNS}/" "$temp_file" > "${temp_file}.updated"
-        mv "${temp_file}.updated" "$temp_file"
+        sed -i "s/^peer_global_dns = .*/peer_global_dns = ${GLOBAL_DNS}/" "$CONFIG_FILE"
     fi
 
     # Update public IP
-    local current_ip=$(grep "remote_endpoint =" "$temp_file" | cut -d'=' -f2 | tr -d ' ')
+    local current_ip=$(grep "remote_endpoint =" "$CONFIG_FILE" | cut -d'=' -f2 | tr -d ' ')
     if [ "$PUBLIC_IP" = "0.0.0.0" ]; then
         PUBLIC_IP=$(curl -s ifconfig.me)
         echo "Fetched Public-IP using ifconfig.me: $PUBLIC_IP"
     fi
     if [ "$PUBLIC_IP" != "$current_ip" ]; then
-        sed "s/^remote_endpoint = .*/remote_endpoint = $PUBLIC_IP/" "$temp_file" > "${temp_file}.updated"
-        mv "${temp_file}.updated" "$temp_file"
+        sed -i "s/^remote_endpoint = .*/remote_endpoint = $PUBLIC_IP/" "$CONFIG_FILE"
     fi
 
     # Update app_prefix
-    local current_prefix=$(grep "app_prefix =" "$temp_file" | awk '{print $NF}')
+    local current_prefix=$(grep "app_prefix =" "$CONFIG_FILE" | awk '{print $NF}')
     if [ "$APP_PREFIX" != "$current_prefix" ]; then
-        sed -i "s|^app_prefix =.*|app_prefix = $APP_PREFIX|" "$temp_file"
+        sed -i "s|^app_prefix =.*|app_prefix = $APP_PREFIX|" "$CONFIG_FILE"
     fi
-
-    cp "$temp_file" "$CONFIG_FILE"
-    rm "$temp_file"
 
     # Update PostUp and PostDown commands for interfaces
     for var in $(env | grep -E '^WG[0-9]+_POST_UP=|^WG[0-9]+_POST_DOWN=' | awk -F= '{print $1}'); do
