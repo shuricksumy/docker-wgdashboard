@@ -16,6 +16,7 @@
 | Var name | Example of usage | Description |
 |---|----|---|
 | TZ | TZ=Europe/Dublin | time zone of server |
+| APP_PREFIX| APP_PREFIX=/wgdashboard | The prefix of the web base URL is usually used when accessing a host with a custom path or using reverse proxy based on Nginx or Traefik. Additionally, need to add /static path as well. URL: http(s)://domain_name/app_prefix |
 | GLOBAL_DNS | GLOBAL_DNS=8.8.8.8 | IP of DNS server used in config files|
 | ENABLE | ENABLE=wg0,wg1,wg2 | The interface names that will start automatically after docker starts|
 | PUBLIC_IP | PUBLIC_IP=192.168.88.88 | The public IP address of server which clients use to connect|
