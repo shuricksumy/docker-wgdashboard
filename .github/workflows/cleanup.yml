@@ -1,3 +1,5 @@
+name: Cleanup Docker Images
+
 on:
   schedule:
     - cron: "0 3 * * *"  # every day at midnight, utc
