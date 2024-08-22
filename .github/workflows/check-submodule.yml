@@ -1,0 +1,51 @@
+name: Check and Update Submodule
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Runs once a day at midnight (UTC)
+
+jobs:
+  update-submodule:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: true  # Ensure submodules are checked out
+
+      - name: Check for submodule changes
+        id: check
+        run: |
+          # Fetch updates for the submodule
+          git submodule update --remote --merge
+          
+          # Check if there are any changes in the submodule
+          if [[ `git status --porcelain` ]]; then
+            echo "Submodule has changes."
+            echo "has_changes=true" >> $GITHUB_ENV
+          else
+            echo "No changes in submodule."
+            echo "has_changes=false" >> $GITHUB_ENV
+          fi
+
+      - name: Commit and push changes
+        if: env.has_changes == 'true'
+        run: |
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "GitHub Actions"
+          
+          # Check if there are any changes to commit
+          if git diff-index --quiet HEAD --; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          # Add changes
+          git add .
+          git commit -m "Update submodule to latest commit"
+          
+          # Push changes
+          git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GHCR_PAT }}
