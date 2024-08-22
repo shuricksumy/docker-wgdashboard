@@ -3,6 +3,7 @@ name: Cleanup Docker Images
 on:
   schedule:
     - cron: "0 3 * * *"  # every day at midnight, utc
+  workflow_dispatch: ~
 
 jobs:
   delete-package-versions:
