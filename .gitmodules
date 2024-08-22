@@ -1,0 +1,3 @@
+[submodule "WGDashboard"]
+	path = WGDashboard
+	url = https://github.com/donaldzou/WGDashboard.git
