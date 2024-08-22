@@ -1,0 +1,17 @@
+on:
+  schedule:
+    - cron: "0 3 * * *"  # every day at midnight, utc
+
+jobs:
+  delete-package-versions:
+    name: Delete untagged package versions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: snok/container-retention-policy@v3.0.0
+        with:
+          account: user
+          token: ${{ secrets.GHCR_PAT }}
+          image-names: "*"  # all packages owned by the account
+          tag-selection: both  # select both tagged and untagged package versions
+          cut-off: 1d  # package versions should be older than 1 day
+          keep-n-most-recent: 5  # keep up to `n` tagged package versions for each of the packages

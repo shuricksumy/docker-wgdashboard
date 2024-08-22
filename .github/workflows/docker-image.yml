@@ -45,6 +45,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
+          provenance: false
           platforms: linux/amd64,linux/arm64
           tags: |
             ghcr.io/${{ github.repository }}:latest
