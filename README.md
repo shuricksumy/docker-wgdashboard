@@ -2,6 +2,8 @@
 
 ##  This is a docker builder for the project [**WGDashboard**](https://github.com/donaldzou/WGDashboard)
 
+[![Build and Deploy Docker Images](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/docker-image.yml/badge.svg?branch=main)](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/docker-image.yml)
+
 > [!TIP]
 > - This example will be reachable on http(s)://your_host:10086/wgdashboard
 > - Or using traeifk as proxy can be reachable https://your_public_host/wgdashboard
