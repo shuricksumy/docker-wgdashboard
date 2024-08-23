@@ -35,6 +35,8 @@ jobs:
         run: |
           pr_exists=$(gh pr list --label "submodule" --state "open" --json number -q ".[0].number")
           echo "pr_submodule_exists=$pr_exists" >> $GITHUB_ENV
+        env:
+          GH_TOKEN: ${{ secrets.GHCR_PAT }}
       
       - name: Create Pull Request
         if: env.has_changes == 'true' && env.pr_submodule_exists == ''
