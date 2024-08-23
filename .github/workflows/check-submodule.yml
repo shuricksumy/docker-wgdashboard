@@ -1,18 +1,42 @@
-name: Submodule Sync
+name: Check and Update Submodule
+
 on:
   schedule:
-    - cron: "0 1 * * *"
-  workflow_dispatch: ~
+    - cron: '0 1 * * *'  # Runs once a day at midnight (UTC)
 
 jobs:
-  submodule-sync:
-    name: Submodule Sync
+  update-submodule:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Submodule Sync
-        uses: mheap/submodule-sync-action@v1
+      - name: Checkout repository
+        uses: actions/checkout@v3
         with:
-          path: WGDashboard
-          ref: main
-          pr_branch: automated-submodule-update
-          target_branch: main
+          submodules: true  # Ensure submodules are checked out
+
+      - name: Check for submodule changes
+        id: check
+        run: |
+          # Fetch updates for the submodule
+          git submodule update --remote --merge
+          
+          # Check if there are any changes in the submodule
+          if [[ `git status --porcelain` ]]; then
+            echo "Submodule has changes."
+            echo "has_changes=true" >> $GITHUB_ENV
+          else
+            echo "No changes in submodule."
+            echo "has_changes=false" >> $GITHUB_ENV
+          fi
+
+      - name: Create a pull request for submodule update
+        if: env.has_changes == 'true'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GHCR_PAT }}
+          commit-message: Update submodule to latest commit
+          branch: update-submodule-branch
+          title: Update submodule to latest commit
+          body: |
+            This PR updates the submodule to the latest commit.
+          labels: submodule-update
