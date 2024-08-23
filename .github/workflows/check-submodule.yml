@@ -29,14 +29,20 @@ jobs:
             echo "No changes in submodule."
             echo "has_changes=false" >> $GITHUB_ENV
           fi
+
+      - name: Check if Pull Request Already Exists
+        id: pr-check
+        run: |
+          pr_exists=$(gh pr list --label "submodule" --state "open" --json number -q ".[0].number")
+          echo "pr_submodule_exists=$pr_exists" >> $GITHUB_ENV
       
       - name: Create Pull Request
-        if: env.has_changes == 'true'
+        if: env.has_changes == 'true' && env.pr_submodule_exists == ''
         uses: peter-evans/create-pull-request@v4
         with:
           token: ${{ secrets.GHCR_PAT }}
           commit-message: Update submodule to latest commit
-          branch: update-submodule-${{ github.run_id }}
+          branch: update-submodule
           title: Update submodule to latest commit
           body: |
             This pull request updates the submodule to the latest commit.
