@@ -2,7 +2,7 @@ name: Check and Update Submodule
 
 on:
   schedule:
-    - cron: '0 1 * * *'  # Runs once a day at midnight (UTC)
+    - cron: '0 0 * * *'  # Runs once a day at midnight (UTC)
   workflow_dispatch: ~
 
 jobs:
@@ -18,8 +18,8 @@ jobs:
       - name: Check for submodule changes
         id: check
         run: |
-          # Fetch updates for the submodule
-          git submodule update --remote --merge
+          # Fetch updates for the submodule and force the update to avoid merge conflicts
+          git submodule update --remote --force
           
           # Check if there are any changes in the submodule
           if [[ `git status --porcelain` ]]; then
