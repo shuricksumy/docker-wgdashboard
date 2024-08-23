@@ -15,29 +15,72 @@ jobs:
         with:
           submodules: true  # Ensure submodules are checked out
 
-      - name: Check for submodule changes
-        id: check
+      # - name: Check for submodule changes
+      #   id: check
+      #   run: |
+      #     # Fetch updates for the submodule and force the update to avoid merge conflicts
+      #     git submodule update --remote --force
+          
+      #     # Check if there are any changes in the submodule
+      #     if [[ `git status --porcelain` ]]; then
+      #       echo "Submodule has changes."
+      #       echo "has_changes=true" >> $GITHUB_ENV
+      #     else
+      #       echo "No changes in submodule."
+      #       echo "has_changes=false" >> $GITHUB_ENV
+      #     fi
+
+      - name: Ensure Submodule is Initialized
         run: |
+          # Initialize and update submodule to ensure it's fully checked out
+          git submodule update --init --recursive
+          
+          # Ensure the submodule is on a branch (not in a detached HEAD state)
+          cd WGDashboard && git checkout main || git checkout -b main && cd -
+      
+      - name: Record and Compare Submodule Commits
+        run: |
+          # Record the last commit hash of the submodule
+          last_commit=$(git submodule status --recursive | awk '{print $1}')
+          
           # Fetch updates for the submodule and force the update to avoid merge conflicts
           git submodule update --remote --force
           
-          # Check if there are any changes in the submodule
-          if [[ `git status --porcelain` ]]; then
-            echo "Submodule has changes."
+          # Get the new commit hash after the update
+          new_commit=$(git submodule status --recursive | awk '{print $1}')
+          
+          # Verify that both commit hashes are valid
+          if ! git rev-parse --verify $last_commit >/dev/null 2>&1; then
+            echo "Invalid last commit hash: $last_commit"
+            exit 1
+          fi
+          
+          if ! git rev-parse --verify $new_commit >/dev/null 2>&1; then
+            echo "Invalid new commit hash: $new_commit"
+            exit 1
+          fi
+          
+          # Check if there are any changes in the 'src' folder between these two commits
+          changes=$(git diff --name-only $last_commit $new_commit -- WGDashboard/src/)
+          
+          if [[ -n "$changes" ]]; then
+            echo "Changes detected in the 'src' folder."
             echo "has_changes=true" >> $GITHUB_ENV
           else
-            echo "No changes in submodule."
+            echo "No changes in the 'src' folder."
             echo "has_changes=false" >> $GITHUB_ENV
           fi
+        shell: /usr/bin/bash -e {0}
 
-      - name: Create a pull request for submodule update
+        
+      - name: Create Pull Request
         if: env.has_changes == 'true'
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@v4
         with:
           token: ${{ secrets.GHCR_PAT }}
           commit-message: Update submodule to latest commit
-          branch: update-submodule-branch
+          branch: update-submodule-${{ github.run_id }}
           title: Update submodule to latest commit
           body: |
-            This PR updates the submodule to the latest commit.
-          labels: submodule-update
+            This pull request updates the submodule to the latest commit.
+          labels: update, submodule
