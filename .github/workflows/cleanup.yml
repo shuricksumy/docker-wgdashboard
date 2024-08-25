@@ -2,19 +2,37 @@ name: Cleanup Docker Images
 
 on:
   schedule:
-    - cron: "0 3 * * *"  # every day at midnight, utc
+    - cron: "0 3 * * *"  # every day at 03:00 UTC
   workflow_dispatch: ~
 
 jobs:
   delete-package-versions:
-    name: Delete untagged package versions
+    name: Delete Untagged Package Versions
     runs-on: ubuntu-latest
     steps:
-      - uses: snok/container-retention-policy@v3.0.0
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3.0.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PAT }}
+
+      - name: Fetch multi-platform package version SHAs
+        id: multi-arch-digests
+        run: |
+          package1=$(docker manifest inspect ghcr.io/shuricksumy/docker-wgdashboard:latest | jq -r '.manifests[] | .digest' | paste -s -d ' ' -)
+          # package2=$(docker manifest inspect ghcr.io/shuricksumy/docker-wgdashboard:latestvpn | jq -r '.manifests[] | .digest' | paste -s -d ' ' -)
+          echo "multi-arch-digests=$package1,$package2"
+          echo "multi-arch-digests=$package1" >> $GITHUB_OUTPUT
+        
+      - name: Delete Untagged Package Versions
+        uses: snok/container-retention-policy@v3.0.0
         with:
           account: user
           token: ${{ secrets.GHCR_PAT }}
-          image-names: "*"  # all packages owned by the account
-          tag-selection: both  # select both tagged and untagged package versions
-          cut-off: 1d  # package versions should be older than 1 day
-          keep-n-most-recent: 5  # keep up to `n` tagged package versions for each of the packages
+          image-names: "docker-wgdashboard*"  # All images under the account
+          tag-selection: untagged  # Only delete untagged package versions
+          cut-off: 1min  # Only delete untagged images older than 7 days
+          keep-n-most-recent: 2  # Keep all images connected to tags
+          skip-shas: ${{ steps.multi-arch-digests.outputs.multi-arch-digests }}
+          dry-run: true
