@@ -55,10 +55,11 @@ RUN python3 -m venv ${WGDASH}/app/src/venv \
   && mkdir -p ${WGDASH}/app/src/app_conf
 
 # Install Python dependencies
-RUN /bin/bash ${WGDASH}/app/src/venv/bin/activate \
+RUN  /bin/bash -c \
+  "source ${WGDASH}/app/src/venv/bin/activate \
   && pip3 install --no-cache-dir -r ${WGDASH}/app/src/requirements.txt \
   && chmod +x ${WGDASH}/app/src/wgd.sh \
-  && ${WGDASH}/app/src/wgd.sh install
+  && ${WGDASH}/app/src/wgd.sh install"
 
 # # After stage 1 (Frontend Build) copy builded front-end application 
 # RUN rm -rf ${WGDASH}/app/src/static/app/dist/*
