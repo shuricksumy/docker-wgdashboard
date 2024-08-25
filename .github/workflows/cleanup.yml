@@ -15,6 +15,10 @@ jobs:
   delete-package-versions:
     name: Delete Untagged Package Versions
     runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: shuricksumy/docker-wgdashboard
+      IMAGE_PATTERN: "docker-wgdashboard*"  # Pattern for image names with a wildcard
+
     steps:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3.0.0
@@ -23,22 +27,53 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_PAT }}
 
-      - name: Fetch multi-platform package version SHAs
+      - name: Fetch Authentication Token
+        id: fetch-token
+        run: |
+          USER_IMAGE="${{ env.IMAGE_NAME }}"
+          TOKEN=$(curl -s "https://ghcr.io/token?scope=repository:${USER_IMAGE}:pull" | awk -F'"' '{print $4}')
+          if [ -z "$TOKEN" ]; then
+            echo "Error: Failed to fetch token."
+            exit 1
+          fi
+          echo "TOKEN=$TOKEN" >> $GITHUB_ENV
+
+      - name: Fetch All Tags
+        id: list-tags
+        run: |
+          _curl() { curl -s -H "Authorization: Bearer ${TOKEN}" "$1"; }
+          response=$(_curl "https://ghcr.io/v2/${{ env.IMAGE_NAME }}/tags/list")
+          if echo "$response" | jq -e '.tags' > /dev/null; then
+            tags=$(echo "$response" | jq -r '.tags[]' | paste -sd, -)
+            echo "tags=$tags" >> $GITHUB_ENV
+          else
+            echo "Error: No tags found or response is invalid."
+            exit 1
+          fi
+
+      - name: Fetch Multi-Platform Package Version SHAs
         id: multi-arch-digests
         run: |
-          package1=$(docker manifest inspect ghcr.io/shuricksumy/docker-wgdashboard:latest | jq -r '.manifests[] | .digest' | paste -s -d ' ' -)
-          package2=$(docker manifest inspect ghcr.io/shuricksumy/docker-wgdashboard:v4.0.2 | jq -r '.manifests[] | .digest' | paste -s -d ' ' -)
-          echo "multi-arch-digests=$package1,$package2"
-          echo "multi-arch-digests=$package1,$package2" >> $GITHUB_OUTPUT
-        
+          digests=()
+          for tag in ${{ env.tags }}; do
+            tag_digests=$(docker manifest inspect ghcr.io/${{ env.IMAGE_NAME }}:$tag | jq -r '.manifests[] | .digest' | paste -s -d ' ' -)
+            digests+=($tag_digests)
+          done
+          unique_digests=$(echo "${digests[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')
+          echo "multi-arch-digests=$unique_digests" >> $GITHUB_ENV
+
+      - name: Display Digests
+        run: |
+          echo "Multi-Arch Digests: ${{ env.multi-arch-digests }}"
+
       - name: Delete Untagged Package Versions
         uses: snok/container-retention-policy@v3.0.0
         with:
-          account: user
+          account: ${{ github.repository_owner }}
           token: ${{ secrets.GHCR_PAT }}
-          image-names: "docker-wgdashboard*"  # All images under the account
+          image-names: ${{ env.IMAGE_PATTERN }}  # Use the pattern variable here
           tag-selection: untagged  # Only delete untagged package versions
-          cut-off: 1min  # Only delete untagged images older than 7 days
+          cut-off: 1min  # Only delete untagged images older than 1 minute for demonstration purposes; adjust as needed
           keep-n-most-recent: 2  # Keep all images connected to tags
-          skip-shas: ${{ steps.multi-arch-digests.outputs.multi-arch-digests }}
+          skip-shas: ${{ env.multi-arch-digests }}
           dry-run: ${{ github.event.inputs.dry-run || 'true' }}
