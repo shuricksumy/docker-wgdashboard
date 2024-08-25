@@ -21,9 +21,9 @@ jobs:
         id: multi-arch-digests
         run: |
           package1=$(docker manifest inspect ghcr.io/shuricksumy/docker-wgdashboard:latest | jq -r '.manifests[] | .digest' | paste -s -d ' ' -)
-          # package2=$(docker manifest inspect ghcr.io/shuricksumy/docker-wgdashboard:latestvpn | jq -r '.manifests[] | .digest' | paste -s -d ' ' -)
+          package2=$(docker manifest inspect ghcr.io/shuricksumy/docker-wgdashboard:v4.0.2 | jq -r '.manifests[] | .digest' | paste -s -d ' ' -)
           echo "multi-arch-digests=$package1,$package2"
-          echo "multi-arch-digests=$package1" >> $GITHUB_OUTPUT
+          echo "multi-arch-digests=$package1,$package2" >> $GITHUB_OUTPUT
         
       - name: Delete Untagged Package Versions
         uses: snok/container-retention-policy@v3.0.0
