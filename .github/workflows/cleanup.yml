@@ -54,14 +54,18 @@ jobs:
       - name: Fetch Multi-Platform Package Version SHAs
         id: multi-arch-digests
         run: |
-          digests=()
-          for tag in ${{ env.tags }}; do
-            tag_digests=$(docker manifest inspect ghcr.io/${{ env.IMAGE_NAME }}:$tag | jq -r '.manifests[] | .digest' | paste -s -d ' ' -)
-            digests+=($tag_digests)
-          done
-          unique_digests=$(echo "${digests[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')
-          echo "multi-arch-digests=$unique_digests" >> $GITHUB_ENV
+            # Convert comma-separated tags into an array
+            IFS=',' read -r -a tag_array <<< "${{ env.tags }}"
+            digests=()
+            # Iterate over each tag and fetch the digests
+            for tag in "${tag_array[@]}"; do
+              tag_digests=$(docker manifest inspect ghcr.io/${{ env.IMAGE_NAME }}:$tag | jq -r '.manifests[] | .digest' | paste -s -d ' ' -)
+              digests+=($tag_digests)
+            done           
+            unique_digests=$(echo "${digests[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')
+            echo "multi-arch-digests=$unique_digests" >> $GITHUB_ENV
 
+    
       - name: Display Digests
         run: |
           echo "Multi-Arch Digests: ${{ env.multi-arch-digests }}"
@@ -69,7 +73,7 @@ jobs:
       - name: Delete Untagged Package Versions
         uses: snok/container-retention-policy@v3.0.0
         with:
-          account: ${{ github.repository_owner }}
+          account: user
           token: ${{ secrets.GHCR_PAT }}
           image-names: ${{ env.IMAGE_PATTERN }}  # Use the pattern variable here
           tag-selection: untagged  # Only delete untagged package versions
