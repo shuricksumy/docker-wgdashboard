@@ -41,9 +41,6 @@ RUN apt-get update && apt-get upgrade -y \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
-# Enable IP forwarding
-RUN echo "net.ipv4.ip_forward=1" | sudo tee -a /etc/sysctl.conf 
-
 # Copy the WGDashboard repository from the local filesystem into the container
 COPY ./WGDashboard ${WGDASH}/app
 
@@ -58,8 +55,8 @@ RUN python3 -m venv ${WGDASH}/app/src/venv \
   && mkdir -p ${WGDASH}/app/src/app_conf
 
 # Install Python dependencies
-RUN . ${WGDASH}/app/src/venv/bin/activate \
-  && pip3 install -r ${WGDASH}/app/src/requirements.txt \
+RUN /bin/bash ${WGDASH}/app/src/venv/bin/activate \
+  && pip3 install --no-cache-dir -r ${WGDASH}/app/src/requirements.txt \
   && chmod +x ${WGDASH}/app/src/wgd.sh \
   && ${WGDASH}/app/src/wgd.sh install
 
