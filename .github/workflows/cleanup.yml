@@ -3,7 +3,13 @@ name: Cleanup Docker Images
 on:
   schedule:
     - cron: "0 3 * * *"  # every day at 03:00 UTC
-  workflow_dispatch: ~
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Perform a dry run (default true)'
+        required: false
+        default: true
+        type: boolean
 
 jobs:
   delete-package-versions:
@@ -35,4 +41,4 @@ jobs:
           cut-off: 1min  # Only delete untagged images older than 7 days
           keep-n-most-recent: 2  # Keep all images connected to tags
           skip-shas: ${{ steps.multi-arch-digests.outputs.multi-arch-digests }}
-          dry-run: true
+          dry-run: ${{ github.event.inputs.dry-run || 'true' }}
