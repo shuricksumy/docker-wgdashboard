@@ -6,6 +6,7 @@ on:
       - main
     paths-ignore:
       - '.github/**'
+      - '*.md'
   release:
     types: [published]
   workflow_dispatch:
