@@ -20,10 +20,18 @@ jobs:
         run: |
           # Fetch updates for the submodule and force the update to avoid merge conflicts
           git submodule update --remote --force
+
+          # Print the full status for debugging
+          echo "Full git status:"
+          git status --porcelain
           
           # Capture the filtered output that excludes .md files
           changes=$(git status --porcelain | grep -vE '\.md$')
 
+          # Print the filtered changes for debugging
+          echo "Filtered changes (excluding .md files):"
+          echo "$changes"
+          
           # Check if there are any changes in the submodule, excluding .md files
           if [[ -n "$changes" ]]; then
             echo "Submodule has changes excluding .md files."
@@ -32,6 +40,7 @@ jobs:
             echo "No changes in submodule excluding .md files."
             echo "has_changes=false" >> $GITHUB_ENV
           fi
+
 
       - name: Check if Pull Request Already Exists
         id: pr-check
