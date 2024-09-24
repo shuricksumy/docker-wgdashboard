@@ -19,9 +19,10 @@ jobs:
         id: check
         run: |
           # Fetch updates for the submodule and force the update to avoid merge conflicts
-          git submodule update --remote --force
+          git submodule update --init --remote --force
+          sleep 10
 
-          #Debug
+          #---Debug
           # Print the current working directory for debugging
           echo "Current directory: $(pwd)"
 
@@ -34,9 +35,10 @@ jobs:
             echo "Error: Submodule directory './WGDashboard' does not exist."
             exit 1
           fi
+          #---DEBUG
 
           echo "Full git status:"
-          cd $(pwd)/WGDashboard
+          cd ./WGDashboard
           git status --porcelain
 
           # Check for changes inside the submodule excluding .md files
