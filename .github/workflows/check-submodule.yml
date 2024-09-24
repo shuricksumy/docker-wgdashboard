@@ -12,21 +12,34 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-        with:
-          submodules: true  # Ensure submodules are checked out
+        #with:
+        #  submodules: true  # Ensure submodules are checked out
 
       - name: Check for submodule changes
         id: check
         run: |
           # Fetch updates for the submodule and force the update to avoid merge conflicts
-          git submodule update --remote --force
-          
-          # Check if there are any changes in the submodule
-          if [[ `git status --porcelain` ]]; then
-            echo "Submodule has changes."
+          git submodule update --init --remote --force
+
+          # Use 'git diff --submodule' to check for submodule changes
+          echo "Checking for changes using 'git diff --submodule':"
+          diff_output=$(git diff --submodule)
+          echo "$diff_output"
+
+          # Check if there are any changes in the submodule excluding .md files
+          # This assumes lines starting with ">" indicate specific file changes
+          changes_excluding_md=$(echo "$diff_output" | grep -vE 'Submodule|\.md$' || echo "")
+
+          # Print the filtered changes for debugging
+          echo "Filtered changes (excluding .md files):"
+          echo "$changes_excluding_md"
+
+          # Check if there are any changes in the submodule, excluding .md files
+          if [[ -n "$changes_excluding_md" ]]; then
+            echo "Submodule has changes excluding .md files."
             echo "has_changes=true" >> $GITHUB_ENV
           else
-            echo "No changes in submodule."
+            echo "No changes in submodule excluding .md files."
             echo "has_changes=false" >> $GITHUB_ENV
           fi
 
