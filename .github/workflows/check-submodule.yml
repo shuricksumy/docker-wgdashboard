@@ -21,8 +21,12 @@ jobs:
           # Fetch updates for the submodule and force the update to avoid merge conflicts
           git submodule update --remote --force
 
+          echo "Full git status:"
+          cd ./WGDashboard
+          git status --porcelain
+
           # Check for changes inside the submodule excluding .md files
-          changes=$(cd ./WGDashboard && git status --porcelain | grep -vE '\.md$')
+          changes=$(git status --porcelain | grep -vE '\.md$')
 
           # Print the filtered changes for debugging
           echo "Filtered changes inside submodule (excluding .md files):"
