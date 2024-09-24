@@ -21,8 +21,11 @@ jobs:
           # Fetch updates for the submodule and force the update to avoid merge conflicts
           git submodule update --remote --force
           
+          # Capture the filtered output that excludes .md files
+          changes=$(git status --porcelain | grep -vE '\.md$')
+
           # Check if there are any changes in the submodule, excluding .md files
-          if git status --porcelain | grep -vE '\.md$'; then
+          if [[ -n "$changes" ]]; then
             echo "Submodule has changes excluding .md files."
             echo "has_changes=true" >> $GITHUB_ENV
           else
