@@ -20,7 +20,7 @@ jobs:
         run: |
           # Fetch updates for the submodule and force the update to avoid merge conflicts
           git submodule update --init --remote --force
-          sleep 10
+        
 
           #---Debug
           # Print the current working directory for debugging
@@ -38,7 +38,7 @@ jobs:
           #---DEBUG
 
           echo "Full git status:"
-          cd ./WGDashboard
+          cd ./WGDashboard || { echo "Error: Unable to enter './WGDashboard' directory."; exit 1; }
           git status --porcelain
 
           # Check for changes inside the submodule excluding .md files
