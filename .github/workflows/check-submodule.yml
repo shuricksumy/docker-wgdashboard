@@ -21,25 +21,9 @@ jobs:
           # Fetch updates for the submodule and force the update to avoid merge conflicts
           git submodule update --init --remote --force
 
-          # Print the current working directory for debugging
-          echo "Current directory: $(pwd)"
-
-          # List the contents of the current directory to verify submodule path
-          echo "Contents of the current directory:"
-          ls -la
-
-          # Check if the submodule directory exists and has proper permissions
-          if [ ! -d "./WGDashboard" ]; then
-            echo "Error: Submodule directory './WGDashboard' does not exist."
-            exit 1
-          fi
-
           # Use 'git diff --submodule' to check for submodule changes
           echo "Checking for changes using 'git diff --submodule':"
           diff_output=$(git diff --submodule)
-
-          # Print the diff output for debugging
-          echo "Diff output:"
           echo "$diff_output"
 
           # Check if there are any changes in the submodule excluding .md files
