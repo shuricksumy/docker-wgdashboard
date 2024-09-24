@@ -28,7 +28,7 @@ jobs:
 
           # Check if there are any changes in the submodule excluding .md files
           # This assumes lines starting with ">" indicate specific file changes
-          changes_excluding_md=$(echo "$diff_output" | grep -vE '\.md$')
+          changes_excluding_md=$(echo "$diff_output" | grep -vE 'Submodule|\.md$')
 
           # Print the filtered changes for debugging
           echo "Filtered changes (excluding .md files):"
