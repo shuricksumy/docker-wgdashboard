@@ -21,12 +21,12 @@ jobs:
           # Fetch updates for the submodule and force the update to avoid merge conflicts
           git submodule update --remote --force
           
-          # Check if there are any changes in the submodule
-          if [[ `git status --porcelain` ]]; then
-            echo "Submodule has changes."
+          # Check if there are any changes in the submodule, excluding .md files
+          if git status --porcelain | grep -vE '\.md$'; then
+            echo "Submodule has changes excluding .md files."
             echo "has_changes=true" >> $GITHUB_ENV
           else
-            echo "No changes in submodule."
+            echo "No changes in submodule excluding .md files."
             echo "has_changes=false" >> $GITHUB_ENV
           fi
 
