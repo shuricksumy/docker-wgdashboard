@@ -22,10 +22,10 @@
 FROM debian:stable-slim AS final-build
 
 # Environment variables
-ENV wg_net="10.0.0.1"
-ENV tz="Europe/Dublin"
-ENV global_dns="1.1.1.1"
-ENV public_ip="0.0.0.0"
+ENV TZ="Europe/Dublin"
+ENV GLOBAL_DNS="1.1.1.1"
+ENV PUBLIC_IP="0.0.0.0"
+ENV APP_PREFIX=""
 ENV WGDASH=/opt/wireguarddashboard
 
 # Set timezone
@@ -75,6 +75,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 
 # Copy the entrypoint script
 COPY entrypoint.sh /entrypoint.sh
+COPY update_wireguard.py /update_wireguard.py
 
 # Expose the default port for WireGuard Dashboard
 EXPOSE 10086

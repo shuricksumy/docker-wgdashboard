@@ -10,12 +10,12 @@
 
 LOG_DIR="${WGDASH}/app/src/log"
 PID_FILE="${WGDASH}/app/src/gunicorn.pid"
-WG_CONF_FILE="/etc/wireguard/wg0.conf"
 CONFIG_FILE="${CONFIGURATION_PATH}/wg-dashboard.ini"
 PY_CACHE="${WGDASH}/app/src/__pycache__"
 WG_CONF_DIR="/etc/wireguard"
 INITIAL_SLEEP=5
 RETRY_SLEEP=5
+venv_python="./venv/bin/python3"
 
 # ========== CLEAN UP ==========
 clean_up() {
@@ -61,37 +61,6 @@ stop_core() {
     bash wgd.sh stop
 }
 
-# ========== UPDATE CONFIGURATION FILE ==========
-update_conf_file() {
-    local interface=$1
-    local post_up_cmd=$2
-    local post_down_cmd=$3
-    local conf_file="$WG_CONF_DIR/${interface}.conf"
-    local temp_file="${conf_file}.tmp"
-
-    if [ -f "$conf_file" ]; then
-        echo "Updating $conf_file with PostUp and PostDown commands."
-        cp "$conf_file" "$temp_file"
-
-        # Update PostUp command
-        if [ -n "$post_up_cmd" ] && grep -q "^PostUp" "$temp_file"; then
-            sed "s|^PostUp.*|PostUp = $post_up_cmd|" "$temp_file" > "${temp_file}.updated"
-            mv "${temp_file}.updated" "$temp_file"
-        fi
-
-        # Update PostDown command
-        if [ -n "$post_down_cmd" ] && grep -q "^PostDown" "$temp_file"; then
-            sed "s|^PostDown.*|PostDown = $post_down_cmd|" "$temp_file" > "${temp_file}.updated"
-            mv "${temp_file}.updated" "$temp_file"
-        fi
-
-        cp "$temp_file" "$conf_file"
-        rm "$temp_file"
-    else
-        echo "$conf_file not found. Skipping."
-    fi
-}
-
 # ========== SET ENVIRONMENT VARIABLES ==========
 set_envvars() {
     echo "Setting environment variables."
@@ -103,38 +72,9 @@ set_envvars() {
         echo "${TZ}" > /etc/timezone
     fi
 
-    # Update DNS
-    local current_dns=$(grep "peer_global_dns =" "$CONFIG_FILE" | awk '{print $NF}')
-    if [ "${GLOBAL_DNS}" != "$current_dns" ]; then
-        echo "Updating DNS to ${GLOBAL_DNS}."
-        sed -i "s/^peer_global_dns = .*/peer_global_dns = ${GLOBAL_DNS}/" "$CONFIG_FILE"
-    fi
-
-    # Update public IP
-    local current_ip=$(grep "remote_endpoint =" "$CONFIG_FILE" | cut -d'=' -f2 | tr -d ' ')
-    if [ "$PUBLIC_IP" = "0.0.0.0" ]; then
-        PUBLIC_IP=$(curl -s ifconfig.me)
-        echo "Fetched Public-IP using ifconfig.me: $PUBLIC_IP"
-    fi
-    if [ "$PUBLIC_IP" != "$current_ip" ]; then
-        sed -i "s/^remote_endpoint = .*/remote_endpoint = $PUBLIC_IP/" "$CONFIG_FILE"
-    fi
-
-    # Update app_prefix
-    local current_prefix=$(grep "app_prefix =" "$CONFIG_FILE" | awk '{print $NF}')
-    if [ "$APP_PREFIX" != "$current_prefix" ]; then
-        sed -i "s|^app_prefix =.*|app_prefix = $APP_PREFIX|" "$CONFIG_FILE"
-    fi
-
-    # Update PostUp and PostDown commands for interfaces
-    for var in $(env | grep -E '^WG[0-9]+_POST_UP=|^WG[0-9]+_POST_DOWN=' | awk -F= '{print $1}'); do
-        interface=$(echo "$var" | sed -E 's/WG([0-9]+)_.*/\1/')
-        if [[ $var == *POST_UP* ]]; then
-            update_conf_file "wg${interface}" "${!var}" ""
-        elif [[ $var == *POST_DOWN* ]]; then
-            update_conf_file "wg${interface}" "" "${!var}"
-        fi
-    done
+    . "${WGDASH}/app/src/venv/bin/activate"
+    cd "${WGDASH}/app/src" || { echo "Failed to change directory. Exiting."; return; }
+    ${venv_python} /update_wireguard.py
 
     echo "Configuration update complete."
 }
