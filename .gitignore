@@ -1,3 +1,6 @@
 conf
 app_conf
 log
+.idea
+/scripts/*
+!/scripts/wg*

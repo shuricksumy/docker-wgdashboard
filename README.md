@@ -8,21 +8,29 @@
 ##  This is a docker builder for the project [**WGDashboard**](https://github.com/donaldzou/WGDashboard)
 
 > [!TIP]
-> #### Example of IPTABLES rules
-> - WG0 rules [ ./scripts/wg0_*.sh ] - trafik is allowded beetween peers and outside the docker
-> - WG1 rules [ ./scripts/wg1_*.sh ] - trafik is blocked beetween peers but allowed outside the docker
-> - WG2 rules [ ./scripts/wg2_*.sh ] - trafik is allowded beetween peers but blocked outside the docker
+> #### SCRIPTS
+> Wireguard can run scripts for each interface base on next events:
+> - PreUp - put script into ./scripts/ folder with template name **<font style="color:orange">[interface_name]_pre_up.sh</font>**
+> - PostUp - put script into ./scripts/ folder with template name **<font style="color:orange">[interface_name]_post_up.sh</font>**
+> - PreDown - put script into ./scripts/ folder with template name **<font style="color:orange">[interface_name]_pre_down.sh</font>**
+> - PostDown - put script into ./scripts/ folder with template name **<font style="color:orange">[interface_name]_post_down.sh</font>**
+> 
+> When docker starts, ./scripts/ folders will be scanned automatically and corresponding config will be updated
+
+> [!TIP]
+> #### Example of scriptd (IPTABLES rules)
+> - wg0 rules [ ./scripts/wg0_*.sh ] - trafik is allowded beetween peers and outside the docker
+> - wg1 rules [ ./scripts/wg1_*.sh ] - trafik is blocked beetween peers but allowed outside the docker
+> - wg2 rules [ ./scripts/wg2_*.sh ] - trafik is allowded beetween peers but blocked outside the docker
 
 ## Env vars
-| Var name | Example of usage | Description |
-|---|----|---|
-| TZ | TZ=Europe/Dublin | time zone of server |
+| Var name | Example of usage | Description                                                                                                                                                                                                                     |
+|---|----|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| TZ | TZ=Europe/Dublin | Time zone of server                                                                                                                                                                                                             |
 | APP_PREFIX| APP_PREFIX=/wgdashboard | The prefix of the web base URL is usually used when accessing a host with a custom path or using reverse proxy based on Nginx or Traefik. Additionally, need to add /static path as well. URL: http(s)://domain_name/app_prefix |
-| GLOBAL_DNS | GLOBAL_DNS=8.8.8.8 | IP of DNS server used in config files|
-| ENABLE | ENABLE=wg0,wg1,wg2 | The interface names that will start automatically after docker starts|
-| PUBLIC_IP | PUBLIC_IP=192.168.88.88 | The public IP address of server which clients use to connect|
-| WG0_POST_UP | WG0_POST_UP=iptables -A some rule | Linux command to run after WG0 interface is up, can be WG1_POST_UP, WG2_POST_UP, etc...|
-| WG0_POST_DOWN | WG0_POST_UP=iptables -D some rule  | Linux command to run after WG0 interface is down, can be WG1_POST_DOWN, WG2_POST_DOWN, etc...|
+| GLOBAL_DNS | GLOBAL_DNS=8.8.8.8 | IP of DNS server used in config files                                                                                                                                                                                           |
+| ENABLE | ENABLE=wg0,wg1,wg2 | The interface names that will start automatically after docker starts                                                                                                                                                           |
+| PUBLIC_IP | PUBLIC_IP=192.168.88.88 | The public IP address of server which clients use to connect                                                                                                                                                                    |
 
 
 `docker-compose.yaml`
@@ -55,13 +63,6 @@ services:
       - GLOBAL_DNS=8.8.8.8
       - ENABLE=wg0,wg1,wg2
       - PUBLIC_IP=192.168.88.88
-      # SCRIPTS
-      - WG0_POST_UP=/bin/bash /scripts/wg0_post_up.sh
-      - WG0_POST_DOWN=/bin/bash /scripts/wg0_post_down.sh
-      - WG1_POST_UP=/bin/bash /scripts/wg1_post_up.sh
-      - WG1_POST_DOWN=/bin/bash /scripts/wg1_post_down.sh
-      - WG2_POST_UP=/bin/bash /scripts/wg2_post_up.sh
-      - WG2_POST_DOWN=/bin/bash /scripts/wg2_post_down.sh
     networks:
           npm_proxy:
               ipv4_address: 172.50.0.10

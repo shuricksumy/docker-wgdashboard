@@ -11,9 +11,9 @@ networks:
 services:
   wireguard-dashboard:
     image: shuricksumy/wgdasboard:latest
-    # build:
-    #   context: .
-    #   dockerfile: Dockerfile
+#    build:
+#     context: .
+#     dockerfile: Dockerfile
     restart: unless-stopped
     container_name: wire-dash
     sysctls:
@@ -21,18 +21,11 @@ services:
       - net.ipv4.conf.all.forwarding=1
       - net.ipv4.conf.all.src_valid_mark=1
     environment:
-      # - APP_PREFIX=/wgdashboard
+#      - APP_PREFIX=/wgdashboard
       - TZ=Europe/Dublin
       - GLOBAL_DNS=8.8.8.8
       - ENABLE=wg0,wg1,wg2
       - PUBLIC_IP=192.168.88.88
-      # SCRIPTS
-      - WG0_POST_UP=/bin/bash /scripts/wg0_post_up.sh
-      - WG0_POST_DOWN=/bin/bash /scripts/wg0_post_down.sh
-      - WG1_POST_UP=/bin/bash /scripts/wg1_post_up.sh
-      - WG1_POST_DOWN=/bin/bash /scripts/wg1_post_down.sh
-      - WG2_POST_UP=/bin/bash /scripts/wg2_post_up.sh
-      - WG2_POST_DOWN=/bin/bash /scripts/wg2_post_down.sh
     networks:
           npm_proxy:
               ipv4_address: 172.50.0.10
