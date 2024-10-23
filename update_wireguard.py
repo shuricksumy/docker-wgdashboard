@@ -24,7 +24,7 @@ def update_conf_file(interface_name):
         return
 
     # Create config parser and read the config file
-    config = configparser.ConfigParser(allow_no_value=True)
+    config = configparser.ConfigParser(allow_no_value=True, strict=False)
 
     # Read the config file
     try:
