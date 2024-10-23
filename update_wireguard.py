@@ -3,7 +3,8 @@ import configparser
 
 WG_CONFIG_DIR = "/etc/wireguard"
 SCRIPTS_DIR = "/scripts"
-APP_CONFIG_FILE = "/opt/wireguarddashboard/app/src/app_conf/wg-dashboard.ini"
+WGDASH = os.getenv('WGDASH','/opt/wireguarddashboard')
+APP_CONFIG_FILE = os.path.join(WGDASH,'app/src/app_conf/wg-dashboard.ini')
 
 # Function to check if a script exists for a specific interface and command (PreUp, PreDown, PostUp, PostDown)
 def get_script_path(interface_name, command):
