@@ -3,8 +3,13 @@ import configparser
 
 WG_CONFIG_DIR = "/etc/wireguard"
 SCRIPTS_DIR = "/scripts"
-WGDASH = os.getenv('WGDASH', '/opt/wireguarddashboard')
+WGDASH = os.getenv('WGDASH','/opt/wireguarddashboard')
 APP_CONFIG_FILE = os.path.join(WGDASH, 'app/src/app_conf/wg-dashboard.ini')
+
+# Custom ConfigParser to handle case sensitivity
+class CaseSensitiveConfigParser(configparser.ConfigParser):
+    def optionxform(self, optionstr):
+        return optionstr
 
 
 # Function to check if a script exists for a specific interface and command (PreUp, PreDown, PostUp, PostDown)
@@ -16,7 +21,7 @@ def get_script_path(interface_name, command):
     return ""
 
 
-# Function to update a specific config file using configparser with case-sensitive options
+# Function to handle the interface section separately
 def update_conf_file(interface_name):
     conf_file = os.path.join(WG_CONFIG_DIR, f"{interface_name}.conf")
 
@@ -24,42 +29,57 @@ def update_conf_file(interface_name):
         print(f"Config file for {interface_name} does not exist.")
         return
 
-    # Create config parser with case-sensitive options and strict=False to allow duplicate sections
-    config = configparser.ConfigParser(allow_no_value=True, strict=False)
-    config.optionxform = str  # Make option names case-sensitive
+    # Step 1: Read the entire file as a list of lines
+    with open(conf_file, 'r') as file:
+        lines = file.readlines()
 
-    # Read the config file
-    try:
-        with open(conf_file, 'r') as file:
-            config.read_file(file)
-    except Exception as e:
-        print(f"Error reading {conf_file}: {e}")
-        return
+    # Step 2: Extract the [Interface] section using the custom case-sensitive configparser
+    config = CaseSensitiveConfigParser(allow_no_value=True, strict=False)
 
-    # Ensure that the [Interface] section exists
-    if 'Interface' not in config:
-        print(f"[Interface] section missing in {interface_name}.conf")
-        return
+    interface_lines = []
+    peer_lines = []
+    inside_interface = False
+    inside_peer = False
 
-    # Get the script paths or set empty if the script doesn't exist
+    for line in lines:
+        if "[Interface]" in line:
+            inside_interface = True
+            inside_peer = False
+            interface_lines.append(line)
+        elif "[Peer]" in line:
+            inside_interface = False
+            inside_peer = True
+            peer_lines.append(line)
+        elif inside_interface:
+            interface_lines.append(line)
+        elif inside_peer or not inside_interface:
+            peer_lines.append(line)
+
+    # Step 3: Load the interface section into configparser and modify it
+    config.read_string(''.join(interface_lines))
+
+    # Modify the [Interface] parameters
     pre_up = get_script_path(interface_name, "pre_up")
     pre_down = get_script_path(interface_name, "pre_down")
     post_up = get_script_path(interface_name, "post_up")
     post_down = get_script_path(interface_name, "post_down")
 
-    # Update the [Interface] section with the script paths (case-sensitive keys)
+    # Update or add these values in the [Interface] section
     config['Interface']['PreUp'] = pre_up
     config['Interface']['PreDown'] = pre_down
     config['Interface']['PostUp'] = post_up
     config['Interface']['PostDown'] = post_down
 
-    # Write the updated configuration back to the config file
-    try:
-        with open(conf_file, 'w') as configfile:
-            config.write(configfile)
-        print(f"Updated {conf_file}")
-    except Exception as e:
-        print(f"Error writing {conf_file}: {e}")
+    # Step 4: Write the updated config back
+    with open(conf_file, 'w') as file:
+        # Write the updated [Interface] section
+        config.write(file)
+
+        # Append the rest of the file (the [Peer] sections)
+        for peer_line in peer_lines:
+            file.write(peer_line)
+
+    print(f"Updated {conf_file}")
 
 
 # Function to process all interface configs
@@ -122,7 +142,6 @@ def update_app_config():
         print(f"Updated {APP_CONFIG_FILE}")
     except Exception as e:
         print(f"Error writing {APP_CONFIG_FILE}: {e}")
-
 
 if __name__ == "__main__":
     process_interfaces()  # Update WireGuard interface configs
