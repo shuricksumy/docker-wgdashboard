@@ -119,6 +119,7 @@ jobs:
         uses: docker/scout-action@v1
         id: docker-scout-cves
         with:
+          command: cves,recommendations
           image: ghcr.io/${{ github.repository }}:${{ env.LATEST_TAG || env.RELEASE_TAG }}
           severity-cutoff: medium
           sarif-file: sarif.output.json
