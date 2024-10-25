@@ -125,23 +125,9 @@ jobs:
           sarif-file: sarif.output.json
           summary: true
 
-      - name: Upload SARIF report for GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v2
+      - name: Upload Scan Report as Artifact
+        uses: actions/upload-artifact@v3
         with:
-          sarif_file: sarif.output.json
+          name: vulnerability-scan-report
+          path: sarif.output.json
 
-      # - name: Update README with Scan Report Badge
-      #   run: |
-      #     echo "![Vulnerability Scan](https://github.com/${{ github.repository }}/actions/workflows/docker-build-and-scan.yml/badge.svg)" >> README.md
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # - name: Commit README Update
-      #   run: |
-      #     git config --local user.email "github-actions[bot]@users.noreply.github.com"
-      #     git config --local user.name "github-actions[bot]"
-      #     git add README.md
-      #     git commit -m "Update README with vulnerability scan badge"
-      #     git push
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
