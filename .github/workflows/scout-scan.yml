@@ -39,3 +39,10 @@ jobs:
         severity-cutoff: medium  # Adjust this as needed
         sarif-file: sarif.output.json
         summary: true
+
+    - name: Upload SARIF result
+      id: upload-sarif
+      if: ${{ github.event_name != 'pull_request_target' }}
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: sarif.output.json
