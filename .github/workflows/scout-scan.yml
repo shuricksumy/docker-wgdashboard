@@ -28,11 +28,11 @@ jobs:
     # Step 3: Pull the image from GitHub Packages
     - name: Pull Docker Image from GitHub Packages
       run: |
-        docker pull ghcr.io/${{ github.repository }}/docker-wgdashboard:latest
+        docker pull ghcr.io/shuricksumy/docker-wgdashboard:latest
 
     # Step 4: Run Docker Scout to scan the image
     - name: Docker Scout Vulnerability Scan
       uses: docker/scout-action@v1.14.0
       with:
-        image: ghcr.io/${{ github.repository }}/docker-wgdashboard:latest
+        image: ghcr.io/shuricksumy/docker-wgdashboard:latest
         severity-cutoff: medium  # Adjust this as needed
