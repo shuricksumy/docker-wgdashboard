@@ -1,7 +1,6 @@
 |Latest|Release|
 |---|---|
-|[![Build and Deploy Docker Images](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/docker-image.yml/badge.svg?branch=main)](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/docker-image.yml)|[![Build and Deploy Docker Images](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/docker-image.yml/badge.svg?event=release)](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/docker-image.yml)|
-
+|[![Build and Deploy Docker Images](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/build.yml)|[![Build and Deploy Docker Images](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/build.yml/badge.svg?event=release)](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/build.yml)|
 
 # Docker-WGDashboard
 
