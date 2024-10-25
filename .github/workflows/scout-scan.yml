@@ -17,22 +17,18 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v3
 
-    # Step 2: Log in to GitHub Container Registry
-    - name: Log in to GitHub Container Registry
-      uses: docker/login-action@v2
-      with:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-        registry: ghcr.io
-
     # Step 3: Pull the image from GitHub Packages
     - name: Pull Docker Image from GitHub Packages
       run: |
         docker pull ghcr.io/shuricksumy/docker-wgdashboard:latest
 
     # Step 4: Run Docker Scout to scan the image
-    - name: Docker Scout Vulnerability Scan
-      uses: docker/scout-action@v1.14.0
+    - name: Analyze for critical and high CVEs
+      uses: docker/scout-action@v1
+      id: docker-scout-cves
       with:
+        command: cves
         image: ghcr.io/shuricksumy/docker-wgdashboard:latest
         severity-cutoff: medium  # Adjust this as needed
+        sarif-file: sarif.output.json
+        summary: true
