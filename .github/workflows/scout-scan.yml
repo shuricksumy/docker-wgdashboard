@@ -1,12 +1,7 @@
 name: Docker Image Vulnerability Scan
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch: ~
 
 jobs:
   vulnerability-scan:
