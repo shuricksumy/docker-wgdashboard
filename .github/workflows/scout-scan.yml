@@ -32,7 +32,7 @@ jobs:
 
     # Step 4: Run Docker Scout to scan the image
     - name: Docker Scout Vulnerability Scan
-      uses: docker/scout-action@v0
+      uses: docker/scout-action@v1.14.0
       with:
         image: ghcr.io/shuricksumy/docker-wgdashboard:latest
         severity-cutoff: medium  # Adjust this as needed
