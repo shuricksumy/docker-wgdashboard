@@ -98,6 +98,19 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: Determine Tags
+        id: tags
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "LATEST_TAG=latest" >> $GITHUB_ENV
+          elif [[ "${{ github.event_name }}" == "release" ]]; then
+            echo "RELEASE_TAG=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.action }}" == "push-main" ]]; then
+            echo "LATEST_TAG=latest" >> $GITHUB_ENV
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.action }}" == "release" ]]; then
+            echo "RELEASE_TAG=${{ github.event.inputs.tag_name }}" >> $GITHUB_ENV
+          fi
+
       - name: Pull Docker Image from GitHub Packages
         run: |
           docker pull ghcr.io/${{ github.repository }}:${{ env.LATEST_TAG || env.RELEASE_TAG }}
