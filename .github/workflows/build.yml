@@ -121,7 +121,6 @@ jobs:
         with:
           command: cves,recommendations
           image: ghcr.io/${{ github.repository }}:${{ env.LATEST_TAG || env.RELEASE_TAG }}
-          severity-cutoff: medium
           sarif-file: sarif.output.json
           summary: true
 
