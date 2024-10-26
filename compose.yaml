@@ -10,7 +10,7 @@ networks:
 
 services:
   wireguard-dashboard:
-    image: shuricksumy/wgdasboard:latest
+    image: shuricksumy/wgdashboard:latest
 #    build:
 #     context: .
 #     dockerfile: Dockerfile
