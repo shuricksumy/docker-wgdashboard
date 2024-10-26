@@ -1,3 +1,5 @@
+# Docker-WGDashboard
+
 |Latest|Release|
 |---|---|
 |[![Build and Deploy Docker Images](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/build.yml)|[![Build and Deploy Docker Images](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/build.yml/badge.svg?event=release)](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/build.yml)|
@@ -5,10 +7,6 @@
 ### Secruty report 
 - Reprot is inside the build job.
 - Regular checks here [Docker Image Vulnerability Scan](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/scout-scan.yml)
-
-  
-
-# Docker-WGDashboard
 
 ##  This is a docker builder for the project [**WGDashboard**](https://github.com/donaldzou/WGDashboard)
 
