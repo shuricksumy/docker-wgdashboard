@@ -1,7 +1,12 @@
 |Latest|Release|
 |---|---|
 |[![Build and Deploy Docker Images](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/build.yml)|[![Build and Deploy Docker Images](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/build.yml/badge.svg?event=release)](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/build.yml)|
-| Vulnerability Report is inside the Job | Vulnerability Report is inside the Job |
+
+### Secruty report 
+- Reprot is inside the build job.
+- Regular checks here [Docker Image Vulnerability Scan](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/scout-scan.yml)
+
+  
 
 # Docker-WGDashboard
 
