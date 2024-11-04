@@ -89,8 +89,8 @@ display_logs() {
 
         # Check if log directory is not empty
         if find "$LOG_DIR" -mindepth 1 -maxdepth 1 -type f | read -r; then
-            latestErrLog=$(find "$LOG_DIR" -name "error_*.log" -type f -printf "%T@ %p\n" | sort -nr | cut -d' ' -f2- | head -n 1)
-            latestAccLog=$(find "$LOG_DIR" -name "access_*.log" -type f -printf "%T@ %p\n" | sort -nr | cut -d' ' -f2- | head -n 1)
+            latestErrLog=$(find "$LOG_DIR" -name "error_*.log" -type f -print | sort -r | head -n 1)
+            latestAccLog=$(find "$LOG_DIR"  -name "access_*.log" -type f -print | sort -r | head -n 1)
 
             # Tail the latest error and access logs
             if [[ -n "$latestErrLog" && -n "$latestAccLog" ]]; then
