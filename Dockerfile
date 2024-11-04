@@ -19,7 +19,7 @@
 # RUN npm run build
 
 # Stage 2: Final Build
-FROM debian:stable-slim AS final-build
+FROM alpine:latest
 
 # Environment variables
 ENV TZ="Europe/Dublin"
@@ -31,15 +31,17 @@ ENV WGDASH=/opt/wireguarddashboard
 # Set timezone
 RUN ln -sf /usr/share/zoneinfo/${tz} /etc/localtime
 
-# Install required packages and clean up
-RUN apt-get update && apt-get upgrade -y \
-  && apt-get install -y --no-install-recommends \
-     curl git sudo iproute2 iptables iputils-ping \
-     openresolv procps python3 python3-pip python3-venv \
-     traceroute wireguard wireguard-tools \
-  && apt-get remove -y linux-image-* --autoremove \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
+# Set timezone
+RUN apk add --no-cache tzdata \
+    && cp /usr/share/zoneinfo/${TZ} /etc/localtime \
+    && echo "${TZ}" > /etc/timezone \
+    && apk update && apk upgrade \
+    && apk add --no-cache \
+       curl git sudo iproute2 iptables iputils \
+       procps python3 py3-pip py3-virtualenv \
+       traceroute wireguard-tools \
+       gcc python3-dev musl-dev linux-headers \
+    && rm -rf /var/cache/apk/*
 
 # Copy the WGDashboard repository from the local filesystem into the container
 COPY ./WGDashboard ${WGDASH}/app
@@ -71,7 +73,7 @@ VOLUME ${WGDASH}/app/src/app_conf
 
 # Healthcheck to ensure the container is running correctly
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -s -o /dev/null -w "%{http_code}" http://localhost:10086/signin | grep -q "401" && exit 0 || exit 1
+  CMD sh -c 'pgrep gunicorn > /dev/null && pgrep tail > /dev/null' || exit 1
 
 # Copy the entrypoint script
 COPY entrypoint.sh /entrypoint.sh
