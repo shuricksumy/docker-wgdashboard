@@ -5,7 +5,6 @@
 |[![Build and Deploy Docker Images](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/build.yml)|[![Build and Deploy Docker Images](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/build.yml/badge.svg?event=release)](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/build.yml)|
 
 ### Secruty report 
-- Report is on Docker Hub https://hub.docker.com/repository/docker/shuricksumy/wgdashboard/general
 - Reprot is inside the build job.
 - Regular checks here [Docker Image Vulnerability Scan](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/scout-scan.yml)
 
