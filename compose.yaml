@@ -12,8 +12,8 @@ services:
   wireguard-dashboard:
     image: shuricksumy/wgdashboard:latest
 #    build:
-#     context: .
-#     dockerfile: Dockerfile
+#      context: .
+#      dockerfile: Dockerfile
     restart: unless-stopped
     container_name: wire-dash
     sysctls:
