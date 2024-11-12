@@ -63,7 +63,7 @@ services:
       # - APP_PREFIX=/wgdashboard
       - TZ=Europe/Dublin
       - GLOBAL_DNS=8.8.8.8
-      - ENABLE=wg0,wg1,wg2
+      # - ENABLE=wg0,wg1,wg2
       - PUBLIC_IP=192.168.88.88
     networks:
           npm_proxy:
