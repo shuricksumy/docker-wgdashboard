@@ -4,27 +4,12 @@
 |---|---|
 |[![Build and Deploy Docker Images](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/build.yml)|[![Build and Deploy Docker Images](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/build.yml/badge.svg?event=release)](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/build.yml)|
 
+
 ### Secruty report 
 - Reprot is inside the build job.
 - Regular checks here [Docker Image Vulnerability Scan](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/scout-scan.yml)
 
 ##  This is a docker builder for the project [**WGDashboard**](https://github.com/donaldzou/WGDashboard)
-
-> [!TIP]
-> #### SCRIPTS
-> Wireguard can run scripts for each interface base on next events:
-> - PreUp - put script into ./scripts/ folder with template name **<font style="color:orange">[interface_name]_pre_up.sh</font>**
-> - PostUp - put script into ./scripts/ folder with template name **<font style="color:orange">[interface_name]_post_up.sh</font>**
-> - PreDown - put script into ./scripts/ folder with template name **<font style="color:orange">[interface_name]_pre_down.sh</font>**
-> - PostDown - put script into ./scripts/ folder with template name **<font style="color:orange">[interface_name]_post_down.sh</font>**
-> 
-> When docker starts, ./scripts/ folders will be scanned automatically and corresponding config will be updated
-
-> [!TIP]
-> #### Example of scriptd (IPTABLES rules)
-> - wg0 rules [ ./scripts/wg0_*.sh ] - trafik is allowded beetween peers and outside the docker
-> - wg1 rules [ ./scripts/wg1_*.sh ] - trafik is blocked beetween peers but allowed outside the docker
-> - wg2 rules [ ./scripts/wg2_*.sh ] - trafik is allowded beetween peers but blocked outside the docker
 
 ## Env vars
 | Var name | Example of usage | Description                                                                                                                                                                                                                     |
@@ -32,9 +17,23 @@
 | TZ | TZ=Europe/Dublin | Time zone of server                                                                                                                                                                                                             |
 | APP_PREFIX| APP_PREFIX=/wgdashboard | The prefix of the web base URL is usually used when accessing a host with a custom path or using reverse proxy based on Nginx or Traefik. Additionally, need to add /static path as well. URL: http(s)://domain_name/app_prefix |
 | GLOBAL_DNS | GLOBAL_DNS=8.8.8.8 | IP of DNS server used in config files                                                                                                                                                                                           |
-| ENABLE | ENABLE=wg0,wg1,wg2 | The interface names that will start automatically after docker starts                                                                                                                                                           |
+| ENABLE | ENABLE=wg0,wg1,wg2 | The interface names that will start automatically after docker starts. This is duplication of WGDashboard functionality - now it's available as additional setting in the WGDashboard app.                                                                                                                                                          |
 | PUBLIC_IP | PUBLIC_IP=192.168.88.88 | The public IP address of server which clients use to connect                                                                                                                                                                    |
 
+> [!TIP]
+> #### SCRIPTS
+> Wireguard can run scripts for each interface base on next events:
+> PreUp, PreDown, PostUp, PostDown
+> Now it can be easily set up in web app
+>
+> ![image](https://github.com/user-attachments/assets/af847898-1b46-4017-97a6-59baaa783f5b)
+
+
+> [!TIP]
+> #### Example of scriptd (IPTABLES rules)
+> - wg0 rules [ ./scripts/wg0_*.sh ] - trafik is allowded beetween peers and outside the docker
+> - wg1 rules [ ./scripts/wg1_*.sh ] - trafik is blocked beetween peers but allowed outside the docker
+> - wg2 rules [ ./scripts/wg2_*.sh ] - trafik is allowded beetween peers but blocked outside the docker
 
 `docker-compose.yaml`
 ```
