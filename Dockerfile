@@ -60,6 +60,7 @@ RUN python3 -m venv ${WGDASH}/app/src/venv \
 RUN  /bin/bash -c \
   "source ${WGDASH}/app/src/venv/bin/activate \
   && pip3 install --no-cache-dir -r ${WGDASH}/app/src/requirements.txt \
+  && cd ${WGDASH}/app/src \
   && chmod +x ${WGDASH}/app/src/wgd.sh \
   && ${WGDASH}/app/src/wgd.sh install"
 
