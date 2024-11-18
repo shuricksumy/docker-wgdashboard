@@ -35,6 +35,12 @@
 > - wg1 rules [ ./scripts/wg1_*.sh ] - trafik is blocked beetween peers but allowed outside the docker
 > - wg2 rules [ ./scripts/wg2_*.sh ] - trafik is allowded beetween peers but blocked outside the docker
 
+> [!TIP]
+> #### To use iptables-legacy just select image with the tag prefix ```debian```
+> - shuricksumy/wgdashboard:debian-latest
+> - shuricksumy/wgdashboard:debian-[release version]
+
+
 `docker-compose.yaml`
 ```
 networks:
@@ -50,6 +56,7 @@ networks:
 services:
   wireguard-dashboard:
     image: shuricksumy/wgdashboard:latest
+    #   image: shuricksumy/wgdashboard:debian-latest
     # build:
     #   context: .
     #   dockerfile: Dockerfile
