@@ -26,7 +26,7 @@
 > PreUp, PreDown, PostUp, PostDown
 > Now it can be easily set up in web app
 >
-> ![image](https://github.com/user-attachments/assets/af847898-1b46-4017-97a6-59baaa783f5b)
+> <img src="https://github.com/user-attachments/assets/af847898-1b46-4017-97a6-59baaa783f5b" alt="script_settings" width="50%" height="50%">
 
 
 > [!TIP]
