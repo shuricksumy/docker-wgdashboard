@@ -1,4 +1,7 @@
 name: Docker Image Vulnerability Scan
+permissions:
+  contents: read
+  pull-requests: write
 
 on:
   schedule:
