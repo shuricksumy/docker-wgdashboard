@@ -7,6 +7,9 @@
 # More details at https://github.com/hadolint/hadolint
 
 name: Hadolint
+permissions:
+  contents: read
+  pull-requests: write
 
 on:
   push:
