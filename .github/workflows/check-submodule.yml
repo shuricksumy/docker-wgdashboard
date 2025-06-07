@@ -1,4 +1,7 @@
 name: Check and Update Submodule
+permissions:
+  contents: read
+  pull-requests: write
 
 on:
   schedule:
