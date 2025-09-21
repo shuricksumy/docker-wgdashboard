@@ -10,7 +10,8 @@
 
 LOG_DIR="${WGDASH}/app/src/log"
 PID_FILE="${WGDASH}/app/src/gunicorn.pid"
-CONFIG_FILE="${CONFIGURATION_PATH}/app/src/app_conf/wg-dashboard.ini"
+#CONFIGURATION_PATH=/opt/wireguarddashboard/app/src/app_conf
+CONFIG_FILE="${CONFIGURATION_PATH}/wg-dashboard.ini"
 PY_CACHE="${WGDASH}/app/src/__pycache__"
 WG_CONF_DIR="/etc/wireguard"
 INITIAL_SLEEP=5
