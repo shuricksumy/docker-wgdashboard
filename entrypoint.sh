@@ -10,12 +10,16 @@
 
 LOG_DIR="${WGDASH}/app/src/log"
 PID_FILE="${WGDASH}/app/src/gunicorn.pid"
-CONFIG_FILE="${CONFIGURATION_PATH}/wg-dashboard.ini"
+CONFIG_FILE="${CONFIGURATION_PATH}/app/src/app_conf/wg-dashboard.ini"
 PY_CACHE="${WGDASH}/app/src/__pycache__"
 WG_CONF_DIR="/etc/wireguard"
 INITIAL_SLEEP=5
 RETRY_SLEEP=5
 venv_python="./venv/bin/python3"
+
+if [ ! -f "${WGDASH}/src/wg-dashboard.ini" ]; then
+    ln -s "${CONFIG_FILE}" "${WGDASH}/src/wg-dashboard.ini"
+fi
 
 # ========== CLEAN UP ==========
 clean_up() {
