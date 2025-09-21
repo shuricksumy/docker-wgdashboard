@@ -19,7 +19,7 @@ RETRY_SLEEP=5
 venv_python="./venv/bin/python3"
 
 if [ ! -f "${WGDASH}/src/wg-dashboard.ini" ]; then
-    ln -s "${CONFIG_FILE}" "${WGDASH}/src/wg-dashboard.ini"
+    ln -s "${CONFIG_FILE}" "${WGDASH}/app/src/wg-dashboard.ini"
 fi
 
 # ========== CLEAN UP ==========
