@@ -83,6 +83,7 @@ services:
       - ./scripts:/scripts
       - ./conf:/etc/wireguard
       - ./app_conf:/opt/wireguarddashboard/app/src/app_conf
+      - ./db:/opt/wireguarddashboard/app/src/db
       - ./log:/opt/wireguarddashboard/app/src/log
     cap_add:
       - NET_ADMIN
