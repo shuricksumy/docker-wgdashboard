@@ -1,5 +1,20 @@
 # Docker-WGDashboard
 
+---
+
+# Project Update:
+
+## I am stopping support for this Docker builder.
+
+## It made sense at the beginning, but now the upstream project has native Docker support and has integrated advanced features like AmneziaWG that surpass this implementation. 
+
+## Rather than duplicating their efforts, I am choosing to archive this repository.
+
+## Big thanks  [**WGDashboard**](https://github.com/donaldzou/WGDashboard) Team for their solution and efforts. 
+
+---
+
+
 |Latest|Release|
 |---|---|
 |[![Build and Deploy Docker Images](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/build.yml)|[![Build and Deploy Docker Images](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/build.yml/badge.svg?event=release)](https://github.com/shuricksumy/docker-wgdashboard/actions/workflows/build.yml)|
